@@ -1,0 +1,10 @@
+{
+  "name": "Example",
+  "nb_epochs": 50,
+  "batch_size": 32,
+  "lr": 5e-2,
+  "weight_decay": 1e-5,
+  "loss_function": "MSE_loss",
+  "latent_space_size": 32,
+  "nbSamplesUseMNIST": 10000
+}
