@@ -5,6 +5,14 @@
 
     Options:
     --------
+    *--propagation_mode: Mode to propagate labels (propLocalQual,
+    classicalProp or OPF-Semi)
+    *--local_quality_threshold: Local quality threshold to use if
+    propLocalQual mode is used and the variable to study is not the local quality threshold
+    *--sorted_qualities: True if wanted to sort the samples by local quality
+     when propagating the labels using LQ-KNN
+    *--var_to_study: Variable to study (K, percentageLabelsKeep or
+    localQualThresh)
 
 """
 import argparse
@@ -170,14 +178,7 @@ def main():
         for line in proc.stdout:
             line = line.decode("utf-8")
             print(line)
-        ap.add_argument('--exp_ID', default='evaluation_label_propagation_MNIST', help="Name of the experiment", type=str)
-        ap.add_argument("--folder_embRepr", required=True, help="Folder to the files describing the embedded data", type=str)
-        ap.add_argument('--propagation_mode', default='propLocalQual', help="Mode to propagate labels (propLocalQual or classicalProp or OPF-Semi)", type=str)
-        ap.add_argument('--var_to_study', default='K', help="Variable to study (K, percentageLabelsKeep or localQualThresh)", type=str)
-        ap.add_argument('--sorted_qualities', default='True', help="True if wanted to sort the samples by local quality when propagating the labels using LQ-KNN", type=str)
-        ap.add_argument('--local_quality_threshold', default=0.3, help="Local quality threshold to use if propLocalQual mode is used and the variable to study is not the local quality threshold", type=float)
-        ap.add_argument('--ks', default=10, help="Value of ks to choose the local quality file to use for LQ-kNN", type=str)
-        ap.add_argument('--kt', default=10, help="Value of kt to choose the local quality file to use for LQ-kNN", type=str)
+        
 
 
 
