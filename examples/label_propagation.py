@@ -16,6 +16,10 @@
         propLocalQual mode is used and the variable to study is not the local quality threshold
         *--ks: Value of ks to choose the local quality file to use for LQ-kNN
         *--kt: Value of kt to choose the local quality file to use for LQ-kNN
+        
+    It stores the results in a folder named 'LabelPropResults' in the same folder
+    as the embedded representations (i.e. in folder_embRepr). The name of the
+    file is of the form expID_propMode-{}_var-to-study-{}.pth
 """
 
 import os
