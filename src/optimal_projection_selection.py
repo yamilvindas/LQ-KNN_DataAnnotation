@@ -7,6 +7,10 @@
     --projections_folder: str
         Mandatory, it corresponds to a folder containing different sub-folders
         corresponding to the projections that we want to study
+        
+    It generates a file ../models/MNIST_EXP_ID/Projections/resultsProjectionSelection.json
+    containing the best, middle and worst projections with their respectives
+    Silhouettes Scores
 """
 from sklearn import metrics
 import pickle
