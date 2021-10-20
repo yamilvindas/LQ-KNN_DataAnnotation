@@ -9,4 +9,4 @@ This folder contains the source codes necessary to run the different examples:
 * **projection_metrics.py**: Implements some projection metrics such as *local quality*, *quality from Lueks et al. (2011)*, *trustworthiness*, *continuity* and *LCMC*. **WARNING**: Some of the metrics can take some time to be computed.
 * **tsne_grid_search.py**: Does a grid search over some pre-defined hyper-parameters to obtain different t-SNE projections. **WARNING**: the execution of this code can be take a considerable amount of time (a couple of hours). If you want to reduce the execution time, you can modify the grid search parameters inside the code.
 
-More details about the different arguments of each code can be found inside the codes.
+More details about the different arguments of each code and the generated files can be found inside the codes.
