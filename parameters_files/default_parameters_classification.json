@@ -7,7 +7,7 @@
   "kt": 10,
   "localQualThresh": 0.1,
   "sortedQualities": "True",
-  "lr": 1e-5,
+  "lr": 0.003,
   "weightDecay": 1e-7,
   "nbEpochs": 50,
   "batchSizeTrain": 32,
