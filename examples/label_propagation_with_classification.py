@@ -35,6 +35,11 @@
         *--folder_embRepr: Path to the folder containing the final embedded
         representations that are going to be used to do label propagation and
         create the final training set
+        
+    The code generates a file with the metrics of the experiment (no model is
+    saved as several models are trained based on the number of repetitions
+    chosen). This file is stored in folder_embRepr/ClassificationResults/ (if
+    the ClassificationResults folder does not exists, it is created by the code).
 """
 import os
 import json
