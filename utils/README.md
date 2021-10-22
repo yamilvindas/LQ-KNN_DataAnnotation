@@ -1,5 +1,6 @@
 # Useful functions
 
+
  This folder contains some useful codes used to download some data that is used by some codes in the foder *examples* and some useful function to plot the results of the different steps of our method (e.g. auto-encoder training and testing metrics, annotation performances, classification performances, projection metrics, etc.)
  
  ## I) *download_exps_data.py*
@@ -14,10 +15,10 @@
  * *var_to_study*: Studied variable which indicates which results have to be plotted.  
  
 If the code is launched without any option, it will show the results of precomuted label propagation runs:
- 
-![plot](./figs/utilsFigs/PlotAnnotationPerformances_1.png)
 
-![plot](./figs/utilsFigs/PlotAnnotationPerformances_2.png)
+![plot](../figs/utilsFigs/PlotAnnotationPerformances_1.png)
+
+![plot](../figs/utilsFigs/PlotAnnotationPerformances_2.png)
  
  ## III) *plot_classification_results.py*
  
@@ -27,7 +28,7 @@ Plot the results of a classification experiment using a semi-automatically label
 If the code is launched without any options, it will plot the classification results shown in the submitted paper:
 
 
-![plot](./figs/utilsFigs/PlotClassificationResults.png )
+![plot](../figs/utilsFigs/PlotClassificationResults.png )
  
  ## IV) *plot_metrics_AE.py*
  
