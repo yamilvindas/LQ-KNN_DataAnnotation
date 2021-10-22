@@ -1,2 +1,4 @@
 *__pycache__*
 *opfython.log*
+datasets/MNIST/
+models/MNIST_Example_0/
