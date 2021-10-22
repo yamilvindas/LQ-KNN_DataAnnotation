@@ -8,7 +8,11 @@ This repository presents the code of the MNIST experiments of the submitted pape
 
 To be able to run the different codes, you need to start by running the following command:
 
-export PYTHONPATH="${PYTHONPATH}:pathToTheLQ-KNN_DataAnnotation_Code"
+                                export PYTHONPATH="${PYTHONPATH}:pathToTheLQ-KNN_DataAnnotation_Code"
+
+Then, you should install the different libraries needed to execute the different codes:
+
+                                             pip install -r requirements.txt
 
 
 ## II) Proposed Method
