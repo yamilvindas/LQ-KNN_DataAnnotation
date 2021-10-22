@@ -7,8 +7,14 @@ import json
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
+from utils.download_exps_data import download_dim_red_data
 
 def main():
+    #=========================================================================#
+    #=========================================================================#
+    # Downloading the useful data for the experiment
+    download_dim_red_data()
+
     #=========================================================================#
     #=========================================================================#
     # Computing multiple representations with different hyper-parameters

@@ -9,8 +9,8 @@
         *--parameters_file: Path to a parameters file containing the different
         parameters of the experiment. These parameters are:
             -expID: Name of the experiment.
-            -propagation_method: Method used to propagate the labels. Three
-            methods are available: LQ-KNN, Std-KNN and OPF-Semi.
+            -propagation_method: Method used to propagate the labels. Four
+            methods are available: LQ-KNN, Std-KNN, OPF-Semi and NoProp.
             -percentageLabelsKeep: Percentage of samples of the training set
             that are going to be considered as originally labeled. The rest
             of the training samples are going to be considered as unlabeled
@@ -35,7 +35,7 @@
         *--folder_embRepr: Path to the folder containing the final embedded
         representations that are going to be used to do label propagation and
         create the final training set
-        
+
     The code generates a file with the metrics of the experiment (no model is
     saved as several models are trained based on the number of repetitions
     chosen). This file is stored in folder_embRepr/ClassificationResults/ (if
@@ -55,6 +55,7 @@ import numpy as np
 from src.classification_model import MnistClassificationModel, GeneralizedCrossEntropy
 from src.label_propagation import propagateLabels_LQKNN, propagateLabelsLocalQuality_LQKNN_withoutSort
 from src.label_propagation import propagateLabels_StdKNN, propagateLabels_OPF
+from utils.download_exps_data import download_label_propagation_with_classification_data
 
 #==============================================================================#
 #==============================================================================#
@@ -306,6 +307,12 @@ class ClassificationExperiment(object):
             nb_annotated_samples,\
             total_number_of_samples,\
             number_initial_labeled_samples = propagateLabels_StdKNN(labeled_samples, unlabeled_samples, self.K)
+        elif (self.propagationMethod.lower() == 'noprop'):
+            new_annotated_samples = labeled_samples
+            accuracy_annotation = None
+            nb_annotated_samples = 0
+            total_number_of_samples = len(labeled_samples)
+            number_initial_labeled_samples = len(labeled_samples)
         else:
             raise ValueError("Propagation mode {} is not supported".format(self.propagationMethod))
 
@@ -497,8 +504,9 @@ def main():
     # Construct the argument parser
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
+    default_folder_embRepr = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0//EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/'
     ap.add_argument("--parameters_file", required=False, default="../parameters_files/default_parameters_classification.json", help="File containing the parameters of the experiment", type=str)
-    ap.add_argument("--folder_embRepr", required=True, help="Path to the folder containing the final embedded representations that are going to be used to do label propagation and create the final training set", type=str)
+    ap.add_argument("--folder_embRepr", required=False, default=default_folder_embRepr, help="Path to the folder containing the final embedded representations that are going to be used to do label propagation and create the final training set", type=str)
     args = vars(ap.parse_args())
 
     # Parameter file
@@ -569,6 +577,13 @@ def main():
 
     if ('nbRepetitions' not in parameters_dict):
         parameters_dict['nbRepetitions'] = 10
+
+    #==========================================================================#
+    #==========================================================================#
+    # If the default parameters are used, we area going to download the
+    # useful data if it has not been done already
+    if ('/MNIST_Example_0/' in folder_embRepr):
+        download_label_propagation_with_classification_data()
 
     #==========================================================================#
     #==========================================================================#

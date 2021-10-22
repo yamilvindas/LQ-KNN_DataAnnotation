@@ -16,7 +16,7 @@
         propLocalQual mode is used and the variable to study is not the local quality threshold
         *--ks: Value of ks to choose the local quality file to use for LQ-kNN
         *--kt: Value of kt to choose the local quality file to use for LQ-kNN
-        
+
     It stores the results in a folder named 'LabelPropResults' in the same folder
     as the embedded representations (i.e. in folder_embRepr). The name of the
     file is of the form expID_propMode-{}_var-to-study-{}.pth
@@ -32,6 +32,7 @@ from time import time
 import copy
 from src.label_propagation import propagateLabels_LQKNN, propagateLabelsLocalQuality_LQKNN_withoutSort
 from src.label_propagation import propagateLabels_StdKNN, propagateLabels_OPF
+from utils.download_exps_data import download_label_propagation_data
 
 class Experiment(object):
     def __init__(self,\
@@ -270,7 +271,7 @@ def main():
     # Construct the argument parser
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
-    default_folder_embRepr = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0//EmbeddedRepresentations_perp30_lr1000_earlyEx10_dim2_0/'
+    default_folder_embRepr = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0//EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/'
     ap.add_argument('--exp_ID', default='evaluation_label_propagation_MNIST', help="Name of the experiment", type=str)
     ap.add_argument("--folder_embRepr", default=default_folder_embRepr, help="Folder to the files describing the embedded data", type=str)
     ap.add_argument('--propagation_mode', default='propLocalQual', help="Mode to propagate labels (propLocalQual or classicalProp or OPF-Semi)", type=str)
@@ -296,6 +297,12 @@ def main():
     else:
         raise ValueError("Option --sorted_qualities cannot take the value {}".format(sorted_qualities))
     ks, kt = args['ks'], args['kt']
+
+    #==========================================================================#
+    # If the default parameters are used, we area going to download the
+    # useful data if it has not been done already
+    if ('/MNIST_Example_0/' in folder_embRepr):
+        download_label_propagation_data()
 
 
     #==========================================================================#

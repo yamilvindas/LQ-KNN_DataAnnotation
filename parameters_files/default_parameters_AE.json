@@ -1,5 +1,5 @@
 {
-  "name": "Example",
+  "name": "Experiment",
   "nb_epochs": 50,
   "batch_size": 32,
   "lr": 5e-2,
