@@ -5,7 +5,7 @@
 
     Options:
     --------
-    metrics_file: str
+    --metrics_file: str
         Path to the metrics .pth file of a trained AE model. This file is
         usually stored in a folder of the form "../models/MNIST_EXP_ID/Model/"
 """

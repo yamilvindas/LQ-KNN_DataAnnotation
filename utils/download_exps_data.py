@@ -158,7 +158,14 @@ def download_label_propagation_results_data():
         os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/LabelPropResults/')
 
     # Downloading the files
-    files_to_download = ['TODO!!!!!']
+    files_to_download = [
+                            'LQ-KNN-01_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.1_percentageLabelsKeep-0.1_0.pth',\
+                            'LQ-KNN-02_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.2_percentageLabelsKeep-0.1_0.pth',\
+                            'LQ-KNN-03_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.3_percentageLabelsKeep-0.1_0.pth',\
+                            'LQ-KNN-04_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.4_percentageLabelsKeep-0.1_0.pth',\
+                            'LQ-KNN-05_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.5_percentageLabelsKeep-0.1_0.pth',\
+                            'Std-KNN_propMode-classicalProp_var-to-study-K_percentageLabelsKeep-0.1_0.pth',\
+                        ]
     for file_to_download in files_to_download:
         download_file(
                         file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/LabelPropResults/'+file_to_download,\
