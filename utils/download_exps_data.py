@@ -126,6 +126,8 @@ def download_label_propagation_results_classification_data():
         semi-automatically labeled datasets shown in the paper for MNIST
     """
     # Creting the needed directories
+    if (not os.path.exists('../models/MNIST_Example_0/')):
+        os.mkdir('../models/MNIST_Example_0/')
     if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')):
         os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')
     if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/')):
@@ -150,6 +152,8 @@ def download_label_propagation_results_data():
         shown in the paper.
     """
     # Creting the needed directories
+    if (not os.path.exists('../models/MNIST_Example_0/')):
+        os.mkdir('../models/MNIST_Example_0/')
     if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')):
         os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')
     if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/')):

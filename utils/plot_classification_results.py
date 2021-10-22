@@ -128,8 +128,8 @@ def main():
     #==========================================================================#
     # If the default parameters are used, we area going to download the
     # useful data if it has not been done already
-    # if (classif_res_folder == default_classif_res_folder):
-    #     download_label_propagation_results_classification_data()
+    if (classif_res_folder == default_classif_res_folder):
+        download_label_propagation_results_classification_data()
 
     #==========================================================================#
     # Matplib fontsize parameter
