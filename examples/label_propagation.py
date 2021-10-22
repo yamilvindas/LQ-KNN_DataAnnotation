@@ -250,6 +250,9 @@ def plotResults(results, var_to_study):
         y_mean_nb_labeled_samples.append(np.mean(results['nbsAnnotatedSamples'][x]))
         y_std_nb_labeled_samples.append(np.std(results['nbsAnnotatedSamples'][x]))
 
+    # Matplotib fontsize parameter
+    plt.rcParams.update({'font.size': 20})
+
     # Annotation accuracy
     plt.errorbar(x_vals, y_mean_annot_acc, yerr=y_std_annot_acc)
     plt.xlabel(var_to_study)

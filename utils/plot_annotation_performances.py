@@ -93,7 +93,7 @@ def main():
         download_label_propagation_results_data()
 
     #==========================================================================#
-    # Matplib fontsize parameter
+    # Matplotlib fontsize parameter
     plt.rcParams.update({'font.size': 20})
 
     #==========================================================================#)
