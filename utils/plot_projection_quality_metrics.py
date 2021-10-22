@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
     This code allows to plot the different projection metrics obtained using
-    the code projection_metrics.property
+    the code projection_metrics.py
 
     Options:
     --------
