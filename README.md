@@ -59,3 +59,17 @@ This code will generate two figures for our proposed method with $\tau=0.1$:
 ### B) Other Examples
 
 In the folder *examples* you can find some codes testing the main blocks of our proposed method. For more details, you can refer to the README.md file of this folder.
+
+## V) How to use our method with other datasets ?
+
+Our method is generic and can be used with different datasets. Indeed, each block of our method can be adapted to each dataset. For instance, if your dataset is an audio dataset, you can use an LSTM, RNN or Transfomer architecture to do the feature extraction part. You can also use other dimensionality reduction techniques to obtain the final 2D space (although we recommend t-SNE as it preserves better the local structure than other methods).
+To understand the behavior of our method on your dataset we recommend that you take the following steps:
+* Let's suppose that you have a dataset *D* composed of a set of *L* labeled samples and a set *U* of unlabeled samples. Let's denote by *l* the proportion of labeled samples (i.e. the ratio between the cardinal of *L* and the cardinal of *D*).
+* First, start by studying the bahavior of our method using only *L*:
+    - Divide *L* between a set of labeled samples *LL* and another set of unlabeled samples *LU* in order to have *l* labeled samples in this dataset. As the trye labels of the samples of *LU* are known, when labeling *LU* you can compute the annotation accuracy of the method.
+    - Test our method with different values of the hyper-parameters (values for *k_s*, *k_t*, *K* and *\tau*) to propagate the labels from *LL* to *LU*. As you have the true labels of the samples in *LU* you can compute the annotation accuracy as well as the percentage of labeled samples.
+    - This will allow you to get an estimation of the annotation error that you can make on your dataset with different values of the hyper-parameters. 
+    - You can then choose the values of the hyper-parameters allowing you to get the best trade-off between the annotation error and the percentage of labeled samples for you application.
+* Then, using the hyper-parameters chosen in the previous step, you can propagate the labels from the samples of *L* to the samples of *U*.
+
+It is also possible to directly propagate the labels from *L* to *U* for different value sof the hyper-parameters and train your supervised models using a robust loss function as shown in the submitted paper (however, in this case you do not have an estimation of the annotation error).
