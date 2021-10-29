@@ -49,9 +49,9 @@ The code is structured in different folders:
 
 ### A) General Example
 
-To execute a simple experiment doing label propagation you can simply execute the code "label_propagation.py" in the "examples" folder:
+To execute a simple experiment doing label propagation you can simply execute the code "label_propagation.py" in the "examples" folder:  
 
-**python ./examples/label_propagation.py**
+        python ./examples/label_propagation.py
 
 This code will generate two figures for our proposed method with $\tau=0.1$:
 *  One showing the annotation accuracy with respect to the considered neighborhood used for label propagation.
@@ -62,7 +62,7 @@ This code will generate two figures for our proposed method with $\tau=0.1$:
 
 ### B) Other Examples
 
-In the folder *examples* you can find some codes testing the main blocks of our proposed method. For more details, you can refer to the README.md file of this folder.
+In the folder *examples* you can find some codes testing the main blocks of our proposed method. For more details, you can refer to the [README.md](https://github.com/yamilvindas/LQ-KNN_DataAnnotation/blob/main/examples/README.md) file of this folder.
 
 ## V) How to use our method with other datasets ?
 
