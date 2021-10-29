@@ -2,7 +2,7 @@
 
 Each of the codes can be easily launched using python: 
 
-                                                      python code_name.py
+        python code_name.py
                                                       
 However, each code also accepts some options allowing to test more in detail the different blocks of our proposed method.
 
