@@ -5,7 +5,9 @@
     Options:
     --------
         *--exp_ID: Name of the experiment
-        *--folder_embRepr: Folder to the files describing the embedded data
+        *--projections_folder: Folder containing different sub-folders
+        corresponding to the projections that we want to study. It is used to
+        select the optimal projection to use for label propagation.
         *--propagation_mode: Mode to propagate labels (propLocalQual,
         classicalProp or OPF-Semi)
         *--var_to_study: Variable to study (K, percentageLabelsKeep or
@@ -18,12 +20,13 @@
         *--kt: Value of kt to choose the local quality file to use for LQ-kNN
 
     It stores the results in a folder named 'LabelPropResults' in the same folder
-    as the embedded representations (i.e. in folder_embRepr). The name of the
-    file is of the form expID_propMode-{}_var-to-study-{}.pth
+    as the projections folder. The name of the file is of the form
+    expID_propMode-{}_var-to-study-{}.pth
 """
 
 import os
 import argparse
+import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -32,12 +35,13 @@ from time import time
 import copy
 from src.label_propagation import propagateLabels_LQKNN, propagateLabelsLocalQuality_LQKNN_withoutSort
 from src.label_propagation import propagateLabels_StdKNN, propagateLabels_OPF
+from src.optimal_projection_selection import select_optimal_projection
 from utils.download_exps_data import download_label_propagation_data
 
 class Experiment(object):
     def __init__(self,\
                  exp_ID,\
-                 folder_embRepr,\
+                 projections_folder,\
                  ks,\
                  kt):
         """
@@ -47,9 +51,10 @@ class Experiment(object):
 
             Arguments:
             ----------
-            folder_embRepr: str
-                Path to a dir containing the different files needed to do the plot
-                (pointsFile, labelsFile, sourcesFile, subjectsFile and pathsToImagesFile)
+            projections_folder: str
+                Folder containing different sub-folders corresponding to the
+                projections that we want to study. It is used to select
+                the optimal projection to use for label propagation.
             ks: int
                 Value of ks to choose the local quality file to use for LQ-kNN
             kt: int
@@ -61,7 +66,7 @@ class Experiment(object):
         # Defining the folder which contains the final embedded representations
         # of the original samples (in general they are 2D points) as well
         # as the local qualities for each embedded representation
-        self.folderEmbRepr = folder_embRepr
+        self.projectionsFolder = projections_folder
 
         # Defining the values of ks and kt to use for the local quality
         self.ks, self.kt = ks, kt
@@ -69,33 +74,14 @@ class Experiment(object):
         # Defining some attributes
         self.nbClasses = 10
 
-        #==========================================================================#
-        # Loading the data
-        self.pointFile = self.folderEmbRepr + 'representations_0.pth'
-        self.labelsFile = self.folderEmbRepr + 'labels_0.pth'
-        self.localQualitiesFile = self.folderEmbRepr + 'localQuality_ks{}_kt{}_0.pth'.format(self.ks, self.kt)
-        with open(self.pointFile, "rb") as fp:   # Unpickling
-            self.embeddedRepresentations = pickle.load(fp)
-        with open(self.labelsFile, "rb") as fp:   # Unpickling
-            self.labels = pickle.load(fp)
-        # Local qualities
-        if (os.path.isfile(self.localQualitiesFile)):
-            with open(self.localQualitiesFile, "rb") as fp:   # Unpickling
-                self.localQualities = pickle.load(fp)
-                # NORMALIZING THE LOCAL QUALITIES BY THE MAX!!!!!!
-                tmpMaxLocalQuals = max(self.localQualities)
-                self.localQualities = [localQual/tmpMaxLocalQuals for localQual in self.localQualities]
-        else:
-            self.localQualities = []
-            print("\nWARNING !!! No local quality file found for ks = {} and kt = {}; impossible to propagate labels using local quality\n".format(self.ks, self.kt))
-
-
     def getSamplesToAnnotate(self, percentageLabelsKeep):
         """
             Creates a list of the status of the samples, dividing them between
-            labeled an unlabeled samples. This list is build using the attribute
-            self.labels; only the percentage percentageLabelsKeep of the labels
-            are kept
+            labeled an unlabeled samples. This list is obtained when computing
+            the optimal projection. We have to do the selection of the labeled
+            samples BEFORE the selection of the optimal projection to avoid
+            having a biased optimal projection because of the use of ALL the
+            available samples.
 
             Arguments:
             ----------
@@ -112,48 +98,76 @@ class Experiment(object):
                     Same as labeled_samples. However, if the label of the
                     unlabeled sample is not known, we define it as None
         """
-        # Initiliazing the lists of labeled and unlabeled samples
+        # Getting the optimal projection, the labeled samples indices
+        # and the unlabeled samples indices
+        optimal_projection_results = select_optimal_projection(self.projectionsFolder, percentageLabelsKeep)
+        best_projection_folder = optimal_projection_results['BestProjection']
+        labeled_samples_idxs = optimal_projection_results['LabeledSamplesIdx']
+        unlabeled_samples_idxs = optimal_projection_results['UnlabeledSamplesIdx']
+
+        # Loading the data, labels and local qualities
+        data_file = best_projection_folder + '/representations_0.pth'
+        labels_file = best_projection_folder + '/labels_0.pth'
+        local_quality_file = best_projection_folder + '/localQuality_ks{}_kt{}_0.pth'.format(self.ks, self.kt)
+        with open(data_file, "rb") as fp:
+            data_points = pickle.load(fp)
+        with open(labels_file, "rb") as fp:   # Unpickling
+            labels = pickle.load(fp)
+        # Local qualities
+        if (not os.path.isfile(local_quality_file)):
+            print("\nWARNING !!! No local quality file found for ks = {} and kt = {}; We are going to compute it !\n".format(self.ks, self.kt))
+            print("========> Starting computation of the local quality <========")
+            latent_space_repr = '/'.join(best_projection_folder.split('/')[:-3])
+            latent_space_repr = latent_space_repr + '/CompressedRepresentations/training_representations.pth'
+            with subprocess.Popen(\
+                                    [
+                                        'python',\
+                                        '../src/projection_metrics.py',\
+                                        '--projections_folder',\
+                                        best_projection_folder,\
+                                        '--latent_space_repr',\
+                                        latent_space_repr,
+                                        '--ks',\
+                                        str(self.ks),
+                                        '--kt',\
+                                        str(self.kt),
+                                        '--quality_lueks',\
+                                        "True",
+                                        '--local_quality',\
+                                        "True"
+                                    ], stdout=subprocess.PIPE
+                                 ) as proc:
+                # Seing if the sample was annotated
+                for line in proc.stdout:
+                    line = line.decode("utf-8")
+                    # print(line)
+            print("========> Finishing computation of the local quality <========")
+        with open(local_quality_file, "rb") as fp:   # Unpickling
+            local_qualities = pickle.load(fp)
+            # NORMALIZING THE LOCAL QUALITIES BY THE MAX!!!!!!
+            tmpMaxLocalQuals = max(local_qualities)
+            local_qualities = [localQual/tmpMaxLocalQuals for localQual in local_qualities]
+
+
+        # Separating the samples between labeled and unlabeled
         labeled_samples, unlabeled_samples = [], []
-
-        # Creating a list of the annotation status of the samples
-        # Here we are going to artificially keep only a percentage of the annotated samples
-        # for each class
-        nb_samples = len(self.embeddedRepresentations)
-
-
-        # First let's count the number of annotated classes per class
-        tot_nb_samples_per_class = {i:0 for i in range(self.nbClasses)}
-        list_idx_per_class = {i:[] for i in range(self.nbClasses)}
-        for idSample in range(nb_samples):
-            label = self.labels[idSample]
-            tot_nb_samples_per_class[label] += 1
-            list_idx_per_class[label].append(idSample)
-
-        # Generating the list of annotated status of the samples
-        # Labeled samples
-        nb_samples_to_label_per_class = {i:int(percentageLabelsKeep*tot_nb_samples_per_class[i]) for i in range(self.nbClasses)}
-        labeled_samples_idxs = []
-        for class_val in list_idx_per_class:
-            idxs_labels_keep_per_class = random.sample(list_idx_per_class[class_val], nb_samples_to_label_per_class[class_val])
-            for sample_id in idxs_labels_keep_per_class: # Labeled samples
-                sample = {
-                            'Data': self.embeddedRepresentations[sample_id],
-                            'Label': self.labels[sample_id],
-                            'LocalQuality': self.localQualities[sample_id]
-                        }
-                labeled_samples.append(sample)
-                labeled_samples_idxs.append(sample_id)
-        # Unlabeled samples
-        for sample_id in range(nb_samples):
-            if (sample_id not in labeled_samples_idxs):
-                sample = {
-                            'Data': self.embeddedRepresentations[sample_id],
-                            'Label': self.labels[sample_id],
-                            'LocalQuality': self.localQualities[sample_id]
-                        }
-                unlabeled_samples.append(sample)
+        for labeled_idx in labeled_samples_idxs:
+            labeled_sample = {
+                                'Data': data_points[labeled_idx],
+                                'Label': labels[labeled_idx],
+                                'LocalQuality': local_qualities[labeled_idx]
+                             }
+            labeled_samples.append(labeled_sample)
+        for unlabeled_idx in unlabeled_samples_idxs:
+            unlabeled_sample = {
+                                'Data': data_points[unlabeled_idx],
+                                'Label': labels[unlabeled_idx],
+                                'LocalQuality': local_qualities[unlabeled_idx]
+                             }
+            unlabeled_samples.append(unlabeled_sample)
 
         return labeled_samples, unlabeled_samples
+
 
     def propagateLabels(self, propagation_mode,\
                         percentageLabelsKeep,
@@ -274,9 +288,9 @@ def main():
     # Construct the argument parser
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
-    default_folder_embRepr = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0//EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/'
+    default_projections_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/'
     ap.add_argument('--exp_ID', default='evaluation_label_propagation_MNIST', help="Name of the experiment", type=str)
-    ap.add_argument("--folder_embRepr", default=default_folder_embRepr, help="Folder to the files describing the embedded data", type=str)
+    ap.add_argument("--projections_folder", default=default_projections_folder, help="Folder to the files describing the embedded data", type=str)
     ap.add_argument('--propagation_mode', default='propLocalQual', help="Mode to propagate labels (propLocalQual or classicalProp or OPF-Semi)", type=str)
     ap.add_argument('--var_to_study', default='K', help="Variable to study (K, percentageLabelsKeep or localQualThresh)", type=str)
     ap.add_argument('--sorted_qualities', default='True', help="True if wanted to sort the samples by local quality when propagating the labels using LQ-KNN", type=str)
@@ -287,7 +301,7 @@ def main():
 
     # Getting the value of the arguments
     exp_ID = args['exp_ID']
-    folder_embRepr = args['folder_embRepr']
+    projections_folder = args['projections_folder']
     propagation_mode = args['propagation_mode']
     print("\n=======> Doing {} label propagation <=======\n".format(propagation_mode))
     var_to_study = args['var_to_study']
@@ -304,13 +318,13 @@ def main():
     #==========================================================================#
     # If the default parameters are used, we area going to download the
     # useful data if it has not been done already
-    if ('/MNIST_Example_0/' in folder_embRepr):
+    if ('/MNIST_Example_0/' in projections_folder):
         download_label_propagation_data()
 
 
     #==========================================================================#
     # Initializing the experiment
-    exp = Experiment(exp_ID, folder_embRepr, ks, kt)
+    exp = Experiment(exp_ID, projections_folder, ks, kt)
 
     #==========================================================================#
     results = {}
@@ -540,7 +554,7 @@ def main():
     if (len(results) > 0):
         # Creating the folders to store the results
         inc = 0
-        results_folder = folder_embRepr + '/LabelPropResults/'
+        results_folder = projections_folder + '/LabelPropResults/'
         if not os.path.isdir(results_folder):
             os.mkdir(results_folder)
 
