@@ -4,3 +4,4 @@ datasets/MNIST/
 models/MNIST_Example_0/
 execution_files/
 output_files/
+logs/
