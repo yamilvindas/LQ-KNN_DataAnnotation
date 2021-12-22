@@ -101,14 +101,21 @@ class Experiment(object):
         # Getting the optimal projection, the labeled samples indices
         # and the unlabeled samples indices
         optimal_projection_results = select_optimal_projection(self.projectionsFolder, percentageLabelsKeep)
-        best_projection_folder = optimal_projection_results['BestProjection']
+        if (projection_to_use.lower() == 'best'):
+            projection_folder_to_use = optimal_projection_results['BestProjection']
+        elif (projection_to_use.lower() == 'middle'):
+            projection_folder_to_use = optimal_projection_results['MiddleProjection']
+        elif (projection_to_use.lower() == 'worst'):
+            projection_folder_to_use = optimal_projection_results['WorstProjection']
+
+
         labeled_samples_idxs = optimal_projection_results['LabeledSamplesIdx']
         unlabeled_samples_idxs = optimal_projection_results['UnlabeledSamplesIdx']
 
         # Loading the data, labels and local qualities
-        data_file = best_projection_folder + '/representations_0.pth'
-        labels_file = best_projection_folder + '/labels_0.pth'
-        local_quality_file = best_projection_folder + '/localQuality_ks{}_kt{}_0.pth'.format(self.ks, self.kt)
+        data_file = projection_folder_to_use + '/representations_0.pth'
+        labels_file = projection_folder_to_use + '/labels_0.pth'
+        local_quality_file = projection_folder_to_use + '/localQuality_ks{}_kt{}_0.pth'.format(self.ks, self.kt)
         with open(data_file, "rb") as fp:
             data_points = pickle.load(fp)
         with open(labels_file, "rb") as fp:   # Unpickling
@@ -117,14 +124,14 @@ class Experiment(object):
         if (not os.path.isfile(local_quality_file)):
             print("\nWARNING !!! No local quality file found for ks = {} and kt = {}; We are going to compute it !\n".format(self.ks, self.kt))
             print("========> Starting computation of the local quality <========")
-            latent_space_repr = '/'.join(best_projection_folder.split('/')[:-3])
+            latent_space_repr = '/'.join(projection_folder_to_use.split('/')[:-3])
             latent_space_repr = latent_space_repr + '/CompressedRepresentations/training_representations.pth'
             with subprocess.Popen(\
                                     [
                                         'python',\
                                         '../src/projection_metrics.py',\
                                         '--projections_folder',\
-                                        best_projection_folder,\
+                                        projection_folder_to_use,\
                                         '--latent_space_repr',\
                                         latent_space_repr,
                                         '--ks',\
