@@ -15,6 +15,12 @@
             that are going to be considered as originally labeled. The rest
             of the training samples are going to be considered as unlabeled
             and they are going to be labeled using a labele propagation method.
+            -projection_type_to_use: Type of projection to use for label propagation.
+            Three choices are possible: Best, Middle and Worst.
+            If Best is chosen, then the best projection selected according
+            to the Silhouette Score is used.
+            If Worst is chose, then the worst projection selected according
+            to the Silhouette Score is used.
             -K: Neighborhood to consider for LQ-KNN and Std-KNN label propagation
             -ks: Error significance for LQ-KNN
             -kt: Error tolerance for LQ-KNN
@@ -95,6 +101,7 @@ class ClassificationExperiment(object):
                  projections_folder,\
                  propagation_method,\
                  percentageLabelsKeep,\
+                 projection_type_to_use,\
                  K,\
                  ks,\
                  kt,\
@@ -128,6 +135,13 @@ class ClassificationExperiment(object):
                 considered as originally labeled. The rest of the training
                 samples are going to be considered as unlabeled and they are
                 going to be labeled using a labele propagation method.
+            projection_type_to_use: str
+                Type of projection to use for label propagation. Three choices
+                are possible: Best, Middle and Worst.
+                If Best is chosen, then the best projection selected according
+                to the Silhouette Score is used.
+                If Worst is chose, then the worst projection selected according
+                to the Silhouette Score is used.
             K: int
                 Neighborhood to consider for LQ-KNN and Std-KNN label propagation
             ks: float
@@ -157,6 +171,7 @@ class ClassificationExperiment(object):
         self.projectionsFolder = projections_folder
         self.propagationMethod = propagation_method
         self.percentageLabelsKeep = 0.1
+        self.projection_type_to_use = projection_type_to_use
         self.K = K
         self.ks, self.kt = ks, kt
         self.localQualThresh = localQualThresh
@@ -204,15 +219,20 @@ class ClassificationExperiment(object):
         # Getting the optimal projection, the labeled samples indices
         # and the unlabeled samples indices
         optimal_projection_results = select_optimal_projection(self.projectionsFolder, self.percentageLabelsKeep)
-        self.best_projection_folder = optimal_projection_results['BestProjection']
+        if (self.projection_type_to_use.lower() == 'best'):
+            self.projection_folder_to_use = optimal_projection_results['BestProjection']
+        elif (self.projection_type_to_use.lower() == 'middle'):
+            self.projection_folder_to_use = optimal_projection_results['MiddleProjection']
+        elif (self.projection_type_to_use.lower() == 'worst'):
+            self.projection_folder_to_use = optimal_projection_results['WorstProjection']
         self.labeled_samples_idxs = optimal_projection_results['LabeledSamplesIdx']
         self.unlabeled_samples_idxs = optimal_projection_results['UnlabeledSamplesIdx']
 
         # Loading the data, labels and local qualities
-        images_file = self.best_projection_folder + '/images_0.pth'
-        data_file = self.best_projection_folder + '/representations_0.pth'
-        labels_file = self.best_projection_folder + '/labels_0.pth'
-        local_quality_file = self.best_projection_folder + '/localQuality_ks{}_kt{}_0.pth'.format(self.ks, self.kt)
+        images_file = self.projection_folder_to_use + '/images_0.pth'
+        data_file = self.projection_folder_to_use + '/representations_0.pth'
+        labels_file = self.projection_folder_to_use + '/labels_0.pth'
+        local_quality_file = self.projection_folder_to_use + '/localQuality_ks{}_kt{}_0.pth'.format(self.ks, self.kt)
         with open(images_file, "rb") as fp:
             images = pickle.load(fp)
         with open(data_file, "rb") as fp:
@@ -224,14 +244,14 @@ class ClassificationExperiment(object):
             if (self.propagationMethod.lower() == 'lq-knn'):
                 print("\nWARNING !!! No local quality file found for ks = {} and kt = {}; We are going to compute it !\n".format(self.ks, self.kt))
                 print("========> Starting computation of the local quality <========")
-                latent_space_repr = '/'.join(self.best_projection_folder.split('/')[:-3])
+                latent_space_repr = '/'.join(self.projection_folder_to_use.split('/')[:-3])
                 latent_space_repr = latent_space_repr + '/CompressedRepresentations/training_representations.pth'
                 with subprocess.Popen(\
                                         [
                                             'python',\
                                             '../src/projection_metrics.py',\
                                             '--projections_folder',\
-                                            self.best_projection_folder,\
+                                            self.projection_folder_to_use,\
                                             '--latent_space_repr',\
                                             latent_space_repr,
                                             '--ks',\
@@ -590,6 +610,10 @@ def main():
     if ('nbRepetitions' not in parameters_dict):
         parameters_dict['nbRepetitions'] = 10
 
+    if ('projection_type_to_use' not in parameters_dict):
+        parameters_dict['projection_type_to_use'] = 'Best'
+    print("\n\n=======>Using {} projectio for label propagation\n\n".format(parameters_dict['projection_type_to_use']))
+
     #==========================================================================#
     #==========================================================================#
     # If the default parameters are used, we area going to download the
@@ -606,6 +630,7 @@ def main():
                                          projections_folder=projections_folder,\
                                          propagation_method=parameters_dict['propagation_method'],\
                                          percentageLabelsKeep=parameters_dict['percentageLabelsKeep'],\
+                                         projection_type_to_use=parameters_dict['projection_type_to_use'],\
                                          K=parameters_dict['K'],\
                                          ks=parameters_dict['ks'],\
                                          kt=parameters_dict['kt'],\
@@ -660,7 +685,7 @@ def main():
         print("\n")
 
     # Saving the results
-    projections_folder = my_expe.best_projection_folder + '/'
+    projections_folder = my_expe.projection_folder_to_use + '/'
     if (not os.path.isdir(projections_folder+'/ClassificationResults/')):
         os.mkdir(projections_folder+'/ClassificationResults/')
     inc = 0

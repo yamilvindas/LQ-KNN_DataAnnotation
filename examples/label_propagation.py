@@ -18,6 +18,12 @@
         propLocalQual mode is used and the variable to study is not the local quality threshold
         *--ks: Value of ks to choose the local quality file to use for LQ-kNN
         *--kt: Value of kt to choose the local quality file to use for LQ-kNN
+        *--projection_type_to_use: projection_type_to_use: Type of projection to use for
+        label propagation. Three choices are possible: Best, Middle and Worst.
+        If Best is chosen, then the best projection selected according
+        to the Silhouette Score is used.
+        If Worst is chose, then the worst projection selected according
+        to the Silhouette Score is used.
 
     It stores the results in a folder named 'LabelPropResults' in the same folder
     as the projections folder. The name of the file is of the form
@@ -43,7 +49,8 @@ class Experiment(object):
                  exp_ID,\
                  projections_folder,\
                  ks,\
-                 kt):
+                 kt,\
+                 projection_type_to_use):
         """
             Class that compares two semi-automatic annotatio methods. The first
             one uses KNN and the local quality of samples to propagate labels
@@ -59,6 +66,13 @@ class Experiment(object):
                 Value of ks to choose the local quality file to use for LQ-kNN
             kt: int
                 Value of kt to choose the local quality file to use for LQ-kNN
+            projection_type_to_use: str
+                Type of projection to use for label propagation. Three choices
+                are possible: Best, Middle and Worst.
+                If Best is chosen, then the best projection selected according
+                to the Silhouette Score is used.
+                If Worst is chose, then the worst projection selected according
+                to the Silhouette Score is used.
         """
         # Defining the name of the experiment
         self.expID = exp_ID
@@ -70,6 +84,9 @@ class Experiment(object):
 
         # Defining the values of ks and kt to use for the local quality
         self.ks, self.kt = ks, kt
+
+        # Projection to use
+        self.projection_type_to_use = projection_type_to_use
 
         # Defining some attributes
         self.nbClasses = 10
@@ -101,14 +118,12 @@ class Experiment(object):
         # Getting the optimal projection, the labeled samples indices
         # and the unlabeled samples indices
         optimal_projection_results = select_optimal_projection(self.projectionsFolder, percentageLabelsKeep)
-        if (projection_to_use.lower() == 'best'):
+        if (self.projection_type_to_use.lower() == 'best'):
             projection_folder_to_use = optimal_projection_results['BestProjection']
-        elif (projection_to_use.lower() == 'middle'):
+        elif (self.projection_type_to_use.lower() == 'middle'):
             projection_folder_to_use = optimal_projection_results['MiddleProjection']
-        elif (projection_to_use.lower() == 'worst'):
+        elif (self.projection_type_to_use.lower() == 'worst'):
             projection_folder_to_use = optimal_projection_results['WorstProjection']
-
-
         labeled_samples_idxs = optimal_projection_results['LabeledSamplesIdx']
         unlabeled_samples_idxs = optimal_projection_results['UnlabeledSamplesIdx']
 
@@ -304,6 +319,7 @@ def main():
     ap.add_argument('--local_quality_threshold', default=0.1, help="Local quality threshold to use if propLocalQual mode is used and the variable to study is not the local quality threshold", type=float)
     ap.add_argument('--ks', default=10, help="Value of ks to choose the local quality file to use for LQ-kNN", type=str)
     ap.add_argument('--kt', default=10, help="Value of kt to choose the local quality file to use for LQ-kNN", type=str)
+    ap.add_argument('--projection_type_to_use', default='Best', help="Type of projection to use for label propagation. Three choices are possible: Best, Middle and Worst", type=str)
     args = vars(ap.parse_args())
 
     # Getting the value of the arguments
@@ -321,6 +337,9 @@ def main():
     else:
         raise ValueError("Option --sorted_qualities cannot take the value {}".format(sorted_qualities))
     ks, kt = args['ks'], args['kt']
+    projection_type_to_use = args['projection_type_to_use']
+    print("Using the {} projection for label propagation".format(projection_type_to_use))
+
 
     #==========================================================================#
     # If the default parameters are used, we area going to download the
@@ -331,7 +350,7 @@ def main():
 
     #==========================================================================#
     # Initializing the experiment
-    exp = Experiment(exp_ID, projections_folder, ks, kt)
+    exp = Experiment(exp_ID, projections_folder, ks, kt, projection_type_to_use)
 
     #==========================================================================#
     results = {}
