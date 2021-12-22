@@ -328,7 +328,7 @@ def main():
 
     #==========================================================================#
     results = {}
-    nbRepetitions = 20 # For statistical purposes
+    nbRepetitions = 100 # For statistical purposes
     if (var_to_study is None): # In this case we do OPF-Semi label propagation
         # Verifying that the propagation mode is OPF-Semi
         if (propagation_mode.lower() != 'opf-semi'):
