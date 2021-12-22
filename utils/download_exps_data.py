@@ -110,8 +110,6 @@ def download_label_propagation_data():
                             file_name=file_to_download
                         )
 
-
-
 def download_label_propagation_with_classification_data():
     """
         Downloads the data needed to run the examples/label_propagation_with_classification.py

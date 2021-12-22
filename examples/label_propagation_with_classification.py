@@ -204,15 +204,15 @@ class ClassificationExperiment(object):
         # Getting the optimal projection, the labeled samples indices
         # and the unlabeled samples indices
         optimal_projection_results = select_optimal_projection(self.projectionsFolder, self.percentageLabelsKeep)
-        best_projection_folder = optimal_projection_results['BestProjection']
-        labeled_samples_idxs = optimal_projection_results['LabeledSamplesIdx']
-        unlabeled_samples_idxs = optimal_projection_results['UnlabeledSamplesIdx']
+        self.best_projection_folder = optimal_projection_results['BestProjection']
+        self.labeled_samples_idxs = optimal_projection_results['LabeledSamplesIdx']
+        self.unlabeled_samples_idxs = optimal_projection_results['UnlabeledSamplesIdx']
 
         # Loading the data, labels and local qualities
-        images_file = best_projection_folder + '/images_0.pth'
-        data_file = best_projection_folder + '/representations_0.pth'
-        labels_file = best_projection_folder + '/labels_0.pth'
-        local_quality_file = best_projection_folder + '/localQuality_ks{}_kt{}_0.pth'.format(self.ks, self.kt)
+        images_file = self.best_projection_folder + '/images_0.pth'
+        data_file = self.best_projection_folder + '/representations_0.pth'
+        labels_file = self.best_projection_folder + '/labels_0.pth'
+        local_quality_file = self.best_projection_folder + '/localQuality_ks{}_kt{}_0.pth'.format(self.ks, self.kt)
         with open(images_file, "rb") as fp:
             images = pickle.load(fp)
         with open(data_file, "rb") as fp:
@@ -224,14 +224,14 @@ class ClassificationExperiment(object):
             if (self.propagationMethod.lower() == 'lq-knn'):
                 print("\nWARNING !!! No local quality file found for ks = {} and kt = {}; We are going to compute it !\n".format(self.ks, self.kt))
                 print("========> Starting computation of the local quality <========")
-                latent_space_repr = '/'.join(best_projection_folder.split('/')[:-3])
+                latent_space_repr = '/'.join(self.best_projection_folder.split('/')[:-3])
                 latent_space_repr = latent_space_repr + '/CompressedRepresentations/training_representations.pth'
                 with subprocess.Popen(\
                                         [
                                             'python',\
                                             '../src/projection_metrics.py',\
                                             '--projections_folder',\
-                                            best_projection_folder,\
+                                            self.best_projection_folder,\
                                             '--latent_space_repr',\
                                             latent_space_repr,
                                             '--ks',\
@@ -258,7 +258,7 @@ class ClassificationExperiment(object):
 
         # Separating the samples between labeled and unlabeled
         labeled_samples, unlabeled_samples = [], []
-        for labeled_idx in labeled_samples_idxs:
+        for labeled_idx in self.labeled_samples_idxs:
             labeled_sample = {
                                 'Data': data_points[labeled_idx],
                                 'Label': labels[labeled_idx],
@@ -266,7 +266,7 @@ class ClassificationExperiment(object):
                                 'Image': images[labeled_idx]
                              }
             labeled_samples.append(labeled_sample)
-        for unlabeled_idx in unlabeled_samples_idxs:
+        for unlabeled_idx in self.unlabeled_samples_idxs:
             unlabeled_sample = {
                                 'Data': data_points[unlabeled_idx],
                                 'Label': labels[unlabeled_idx],
@@ -660,6 +660,7 @@ def main():
         print("\n")
 
     # Saving the results
+    projections_folder = my_expe.best_projection_folder + '/'
     if (not os.path.isdir(projections_folder+'/ClassificationResults/')):
         os.mkdir(projections_folder+'/ClassificationResults/')
     inc = 0
