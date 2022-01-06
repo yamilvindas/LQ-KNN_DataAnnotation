@@ -48,6 +48,7 @@
     the ClassificationResults folder does not exists, it is created by the code).
 """
 import os
+import time
 import json
 import pickle
 import argparse
@@ -69,7 +70,7 @@ from utils.download_exps_data import download_label_propagation_with_classificat
 # MNIST Dataset Class
 class MNISTLabelProp(Dataset):
     """
-        MNIST Dataset Wrapper (usef to create the dataset from samples annotated
+        MNIST Dataset Wrapper (used to create the dataset from samples annotated
         with one chosen label propagation method)
     """
     def __init__(self, data):
@@ -647,49 +648,72 @@ def main():
     print("=======> DONE")
     print("====================================================================")
 
+    #==========================================================================#
+    #==========================================================================#
+    # Creating folders to save the results
+    # projections_folders = my_expe.projection_folder_to_use + '/'
+    projections_folders = projections_folder + '/'
+    if (not os.path.isdir(projections_folders+'/ClassificationResults/')):
+        os.mkdir(projections_folders+'/ClassificationResults/')
+    inc = 0
+    fileName = projections_folders + '/ClassificationResults/' + parameters_dict['expID'] + '_tmpResults_'
+    while (os.path.isfile(fileName + str(inc) + '.pth')):
+        inc += 1
+    fileName = fileName + str(inc) + '.pth'
+    # Saving the parameters of the experiment
+    with open(projections_folders + '/ClassificationResults/' + parameters_dict['expID'] +  '_params.json', 'w') as jf:
+        json.dump(parameters_dict, jf)
+
 
     #==========================================================================#
     #==========================================================================#
-    # Doing label propagation on the training set
-    print("\n\n=========Creating the training set using label propagation=========")
-    labeled_samples,\
-    new_labeled_samples,\
-    accuracy_annotation,\
-    nb_annotated_samples,\
-    total_number_of_samples,\
-    number_initial_labeled_samples = my_expe.propagateLabels()
-    print("=======>We annotated {} samples with an annotation accuracy of {}".format(nb_annotated_samples, accuracy_annotation))
-    print("=======>In total we have {} training samples".format(nb_annotated_samples + number_initial_labeled_samples))
-    print("=======> DONE")
-    print("====================================================================")
-
-    #==========================================================================#
-    #==========================================================================#
-    # Creating the data loaders
-    print("\n\n==============Creating the train and test dataloaders==============")
-    my_expe.createTrainLoader(labeled_samples, new_labeled_samples)
-    my_expe.createTestLoader()
-    print("=======> DONE")
-    print("====================================================================")
-
-    #==========================================================================#
-    #==========================================================================#
-    # Doing the training and testing
-    print("\n\n================Training the model ({} repetitions)================".format(parameters_dict['nbRepetitions']))
     results = []
     for repetition in range(parameters_dict['nbRepetitions']):
         print("=======> Doing repetition {} <=======".format(repetition))
+        start_time = time.time()
+        #==========================================================================#
+        #==========================================================================#
+        # Doing label propagation on the training set
+        print("\n\n=========Creating the training set using label propagation=========")
+        labeled_samples,\
+        new_labeled_samples,\
+        accuracy_annotation,\
+        nb_annotated_samples,\
+        total_number_of_samples,\
+        number_initial_labeled_samples = my_expe.propagateLabels()
+        print("=======>We annotated {} samples with an annotation accuracy of {}".format(nb_annotated_samples, accuracy_annotation))
+        print("=======>In total we have {} training samples".format(nb_annotated_samples + number_initial_labeled_samples))
+        print("=======> DONE")
+        print("====================================================================")
+
+        #==========================================================================#
+        #==========================================================================#
+        # Creating the data loaders
+        print("\n\n==============Creating the train and test dataloaders==============")
+        my_expe.createTrainLoader(labeled_samples, new_labeled_samples)
+        my_expe.createTestLoader()
+        print("=======> DONE")
+        print("====================================================================")
+
+        #======================================================================#
+        #======================================================================#
+        # Doing the training and testing
+        print("\n\n================Training the model ({} repetitions)================".format(parameters_dict['nbRepetitions']))
         tmp_res = my_expe.trainModel()
+        end_time = time.time()
+        print("Time do to one repetition: {} s".format(end_time-start_time))
+        # Saving the results
         results.append(tmp_res)
         print("Train accuracy {}, Test accuracy {}".format(tmp_res['TrainAcc'][-1], tmp_res['TestAcc'][-1]))
-        print("\n")
 
-    # Saving the results
-    projections_folder = my_expe.projection_folder_to_use + '/'
-    if (not os.path.isdir(projections_folder+'/ClassificationResults/')):
-        os.mkdir(projections_folder+'/ClassificationResults/')
-    inc = 0
-    fileName = projections_folder + '/ClassificationResults/' + parameters_dict['expID'] + '_'
+        # Saving the results
+        results.append(tmp_res)
+        with open(fileName, "wb") as fp:   #Pickling
+            pickle.dump(results, fp)
+        print("\n\n")
+
+    # Saving the FINAL results
+    fileName = projections_folders + '/ClassificationResults/' + parameters_dict['expID'] + '_FINAL_'
     while (os.path.isfile(fileName + str(inc) + '.pth')):
         inc += 1
     fileName = fileName + str(inc) + '.pth'

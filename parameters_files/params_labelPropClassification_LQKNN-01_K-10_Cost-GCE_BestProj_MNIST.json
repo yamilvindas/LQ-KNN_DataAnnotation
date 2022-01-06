@@ -1,0 +1,19 @@
+{
+  "expID": "LabelPropClassification_LQKNN-01_K-10_Cost-GCE_BestProj_MNIST",
+  "propagation_method": "LQ-KNN",
+  "percentageLabelsKeep": 0.1,
+  "K": 10,
+  "ks": 10,
+  "kt": 10,
+  "localQualThresh": 0.1,
+  "sortedQualities": "True",
+  "lr": 0.007,
+  "weightDecay": 1e-7,
+  "nbEpochs": 100,
+  "batchSizeTrain": 32,
+  "batchSizeTest": 64,
+  "lossFunction": "GCE",
+  "device": "GPU",
+  "nbRepetitions": 50,
+  "projection_type_to_use": "Best"
+}
