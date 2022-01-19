@@ -355,9 +355,9 @@ def main():
     #==========================================================================#
     results = {}
     if (propagation_mode.lower() == 'opf-semi'):
-        nbRepetitions = 30
+        nbRepetitions = 20
     else:
-        nbRepetitions = 100 # For statistical purposes
+        nbRepetitions = 50 # For statistical purposes
     if (var_to_study is None): # In this case we do OPF-Semi label propagation
         # Verifying that the propagation mode is OPF-Semi
         if (propagation_mode.lower() != 'opf-semi'):
@@ -394,7 +394,7 @@ def main():
             executionTimes.append(endTime-startTime)
         print("Needed time to do the propagation with {} for K= {}: {} +- {} s".format(propagationMode, K, np.mean(executionTimes), np.std(executionTimes)))
 
-    elif (var_to_study == 'K'):
+    elif (var_to_study == 'K') and (propagation_mode.lower() != 'opf-semi'):
         print("\n=======>Variable studied: {}".format(var_to_study))
         K_vals = [i for i in range(21)]
         percentageLabelsKeep = 0.1
@@ -441,8 +441,10 @@ def main():
 
     elif (var_to_study == 'percentageLabelsKeep'):
         print("\n=======>Variable studied: {}".format(var_to_study))
-        percentageLabelsKeep_vals = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        #percentageLabelsKeep_vals = [0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        percentageLabelsKeep_vals = [i*10**(-2) for i in range(1, 21)]
         K = 5
+        # K = 10
         results = {
                     'K': K,
                     'accs': {},
@@ -479,7 +481,7 @@ def main():
                     results['initNbAnnotateSamples'][percentageLabelsKeep].append(initNbAnnotateSamples)
                     results['nbTotalSamples'][percentageLabelsKeep].append(totNumberSamples)
 
-    elif (var_to_study == 'localQualThresh'):
+    elif (var_to_study == 'localQualThresh') and (propagation_mode.lower() != 'opf-semi'):
         print("\n=======>Variable studied: {}".format(var_to_study))
         if (propagation_mode != 'propLocalQual'):
             raise ValueError("If var_to_study is 'localQualThresh', then mode has to be 'propLocalQual'" )
@@ -522,7 +524,7 @@ def main():
                         results['initNbAnnotateSamples'][localQualThresh].append(initNbAnnotateSamples)
                         results['nbTotalSamples'][localQualThresh].append(totNumberSamples)
 
-    elif (var_to_study == 'gridSearch'):
+    elif (var_to_study == 'gridSearch') and (propagation_mode.lower() != 'opf-semi'):
         print("\n=======>Variable studied: {}".format(var_to_study))
         if (propagation_mode != 'propLocalQual'):
             raise ValueError("If var_to_study is 'gridSearch', then mode has to be 'propLocalQual'" )

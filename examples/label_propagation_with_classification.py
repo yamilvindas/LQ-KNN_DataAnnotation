@@ -342,7 +342,7 @@ class ClassificationExperiment(object):
             number_initial_labeled_samples = propagateLabels_StdKNN(labeled_samples, unlabeled_samples, self.K)
         elif (self.propagationMethod.lower() == 'noprop'):
             new_annotated_samples = labeled_samples
-            accuracy_annotation = None
+            accuracy_annotation = 1
             nb_annotated_samples = 0
             total_number_of_samples = len(labeled_samples)
             number_initial_labeled_samples = len(labeled_samples)

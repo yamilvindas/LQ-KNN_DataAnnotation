@@ -18,7 +18,6 @@ import argparse
 import subprocess
 
 def main():
-    print("\n\n AAAAAAAAAAAAAAAAAAA \n\n")
     # =========================================================================#
     # Construct the argument parser
     ap = argparse.ArgumentParser()

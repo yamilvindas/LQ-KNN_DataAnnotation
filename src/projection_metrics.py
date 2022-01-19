@@ -348,6 +348,8 @@ def main():
     ap.add_argument("--quality", default="False", help="True if want to compute the quality", type=str)
     ap.add_argument("--quality_lueks", default="False", help="True if want to compute the qualityLueks", type=str)
     ap.add_argument("--local_quality", default="False", help="True if want to compute the localQuality", type=str)
+    ap.add_argument("--save_coranking_matrix", default=False, help="True if want to save the coranking matrix in a file", type=bool)
+    ap.add_argument("--save_ranks", default=False, help="True if want to save the ranks (R and rho) in a file", type=bool)
     args = vars(ap.parse_args())
 
     # Parameters
@@ -367,6 +369,8 @@ def main():
     compute_quality = args["quality"]
     compute_qualityLueks = args["quality_lueks"]
     compute_localQuality = args["local_quality"]
+    save_coranking_matrix = args['save_coranking_matrix']
+    save_ranks = args['save_ranks']
 
     #==========================================================================#
     # Loading the data
@@ -398,13 +402,14 @@ def main():
             print("Shape of the co-ranking matrix : {}\n".format(Q.shape))
 
             # Saving the co-ranking matrix
-            corankMatrixFileName = projections_folder + "/corankingMatrix"
-            inc = 0
-            while os.path.isfile(corankMatrixFileName+'_'+str(inc)+'.pth'):
-                inc +=1
-            corankMatrixFileName += '_'+str(inc)+'.pth'
-            with open(corankMatrixFileName, "wb") as fp:   #Pickling
-                pickle.dump(Q, fp)
+            if (save_coranking_matrix):
+                corankMatrixFileName = projections_folder + "/corankingMatrix"
+                inc = 0
+                while os.path.isfile(corankMatrixFileName+'_'+str(inc)+'.pth'):
+                    inc +=1
+                corankMatrixFileName += '_'+str(inc)+'.pth'
+                with open(corankMatrixFileName, "wb") as fp:   #Pickling
+                    pickle.dump(Q, fp)
     else:
         # Getting the path of the folder containing the file
         projections_folder = '/'.join(corankMatrixFileName.split('/')[:-1])
@@ -530,22 +535,23 @@ def main():
         endTime = time()
         print("Time needed to compute the ranks of all the samples with respect to the other samples: {} s".format(endTime-startTime))
         # Saving the ranks
-        # Ranks Rho
-        ranksRhoFileName = projections_folder + "/ranksRho"
-        inc = 0
-        while os.path.isfile(ranksRhoFileName+'_'+str(inc)+'.pth'):
-            inc +=1
-        ranksRhoFileName += '_'+str(inc)+'.pth'
-        with open(ranksRhoFileName, "wb") as fp:   #Pickling
-            pickle.dump(rho, fp)
-        # Ranks R
-        ranksRFileName = projections_folder + "/ranksR"
-        inc = 0
-        while os.path.isfile(ranksRFileName+'_'+str(inc)+'.pth'):
-            inc +=1
-        ranksRFileName += '_'+str(inc)+'.pth'
-        with open(ranksRFileName, "wb") as fp:   #Pickling
-            pickle.dump(r, fp)
+        if (save_ranks):
+            # Ranks Rho
+            ranksRhoFileName = projections_folder + "/ranksRho"
+            inc = 0
+            while os.path.isfile(ranksRhoFileName+'_'+str(inc)+'.pth'):
+                inc +=1
+            ranksRhoFileName += '_'+str(inc)+'.pth'
+            with open(ranksRhoFileName, "wb") as fp:   #Pickling
+                pickle.dump(rho, fp)
+            # Ranks R
+            ranksRFileName = projections_folder + "/ranksR"
+            inc = 0
+            while os.path.isfile(ranksRFileName+'_'+str(inc)+'.pth'):
+                inc +=1
+            ranksRFileName += '_'+str(inc)+'.pth'
+            with open(ranksRFileName, "wb") as fp:   #Pickling
+                pickle.dump(r, fp)
 
     # Computing the local qualities
     if (compute_localQuality.lower() == 'true'):

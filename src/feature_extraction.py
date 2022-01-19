@@ -74,7 +74,7 @@ class my_expe_class(object):
     def __init__(
                     self, exp_id, epochs, batch_size, lr, weight_decay, loss_function,\
                     device='cpu', model_type="MnistConvolutionalAE",\
-                    latent_space_size=32, nbSamplesUseMNIST=10000
+                    latent_space_size=32, nbSamplesUseMNIST=15000
                 ):
 
         print("\nInitializing experiment")
@@ -367,7 +367,7 @@ def main():
         parameters_dict['latent_space_size'] = 32
 
     if ('nbSamplesUseMNIST' not in parameters_dict):
-        parameters_dict['nbSamplesUseMNIST'] = 10000
+        parameters_dict['nbSamplesUseMNIST'] = 15000
 
     # =========================================================================#
     # Running the experiment

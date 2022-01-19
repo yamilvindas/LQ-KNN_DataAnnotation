@@ -90,12 +90,14 @@ def main():
     ap.add_argument("--exp_name", default='tSNE_GridSearch', help="Name of the experiment", type=str)
     ap.add_argument("--representations_file", required=False, help="Pth file containing the data to reduce", type=str)
     ap.add_argument("--target_dim", required=False, default=2, help="Target dimension of the embedded representation (2 or 3)", type=int)
+    ap.add_argument("--use_default_params_tsne", default=False, help="True if want to use the default parameters for t-SNE instead of doing a GridSearch", type=bool)
     args = vars(ap.parse_args())
 
     # Points file and target dim
     exp_name = args['exp_name']
     representations_file = args['representations_file']
     target_dim = args['target_dim']
+    use_default_params_tsne = args['use_default_params_tsne']
 
     #==========================================================================#
     # Creating the folder with the projections
@@ -111,13 +113,19 @@ def main():
     #==========================================================================#
     # Parameters for the tgrid search experiment
     # =========================================================================#
-    # perplexities = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-    perplexities = [10, 30, 50]
-    # early_exaggerations = [5, 10, 25, 50, 75, 100, 200, 500]
-    early_exaggerations = [50, 250, 500]
-    # learning_rates = [10, 50, 100, 500, 1000]
-    learning_rates = [10, 100, 1000]
-    n_iter = 3000
+    if (use_default_params_tsne):
+        perplexities = [30.0]
+        early_exaggerations = [12.0]
+        learning_rates = [200]
+        n_iter = 1000
+    else:
+        # perplexities = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+        perplexities = [10, 30, 50]
+        # early_exaggerations = [5, 10, 25, 50, 75, 100, 200, 500]
+        early_exaggerations = [50, 250, 500]
+        # learning_rates = [10, 50, 100, 500, 1000]
+        learning_rates = [10, 100, 1000]
+        n_iter = 3000
 
 
     #==========================================================================#
