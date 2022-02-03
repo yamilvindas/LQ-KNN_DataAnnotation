@@ -37,7 +37,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import random
-from time import time
+import time
 import copy
 from src.label_propagation import propagateLabels_LQKNN, propagateLabelsLocalQuality_LQKNN_withoutSort
 from src.label_propagation import propagateLabels_StdKNN, propagateLabels_OPF
@@ -237,7 +237,8 @@ class Experiment(object):
             accuracy_annotation,\
             nb_annotated_samples,\
             total_number_of_samples,\
-            number_initial_labeled_samples = propagateLabels_OPF(labeled_samples, unlabeled_samples)
+            number_initial_labeled_samples,\
+            annotation_time = propagateLabels_OPF(labeled_samples, unlabeled_samples)
         elif (propagation_mode.lower() == 'proplocalqual'):
             try:
                 if (kwargs['sorted_qualities']):
@@ -250,13 +251,15 @@ class Experiment(object):
             accuracy_annotation,\
             nb_annotated_samples,\
             total_number_of_samples,\
-            number_initial_labeled_samples = prop_method(labeled_samples, unlabeled_samples, kwargs['K'], kwargs['localQualThresh'])
+            number_initial_labeled_samples,\
+            annotation_time = prop_method(labeled_samples, unlabeled_samples, kwargs['K'], kwargs['localQualThresh'])
         elif (propagation_mode.lower() == 'classicalprop'):
             new_annotated_samples,\
             accuracy_annotation,\
             nb_annotated_samples,\
             total_number_of_samples,\
-            number_initial_labeled_samples = propagateLabels_StdKNN(labeled_samples, unlabeled_samples, kwargs['K'])
+            number_initial_labeled_samples,\
+            annotation_time = propagateLabels_StdKNN(labeled_samples, unlabeled_samples, kwargs['K'])
         else:
             raise ValueError("Propagation mode {} is not supported".format(propagation_mode))
 
@@ -265,7 +268,8 @@ class Experiment(object):
                accuracy_annotation,\
                nb_annotated_samples,\
                total_number_of_samples,\
-               number_initial_labeled_samples
+               number_initial_labeled_samples,\
+               annotation_time
 
 def plotResults(results, var_to_study):
     """
@@ -314,7 +318,7 @@ def main():
     ap.add_argument('--exp_ID', default='evaluation_label_propagation_MNIST', help="Name of the experiment", type=str)
     ap.add_argument("--projections_folder", default=default_projections_folder, help="Folder to the files describing the embedded data", type=str)
     ap.add_argument('--propagation_mode', default='propLocalQual', help="Mode to propagate labels (propLocalQual or classicalProp or OPF-Semi)", type=str)
-    ap.add_argument('--var_to_study', default='K', help="Variable to study (K, percentageLabelsKeep or localQualThresh)", type=str)
+    ap.add_argument('--var_to_study', default=None, help="Variable to study (K, percentageLabelsKeep or localQualThresh)", type=str)
     ap.add_argument('--sorted_qualities', default='True', help="True if wanted to sort the samples by local quality when propagating the labels using LQ-KNN", type=str)
     ap.add_argument('--local_quality_threshold', default=0.1, help="Local quality threshold to use if propLocalQual mode is used and the variable to study is not the local quality threshold", type=float)
     ap.add_argument('--ks', default=10, help="Value of ks to choose the local quality file to use for LQ-kNN", type=str)
@@ -365,7 +369,6 @@ def main():
         print("\n=======>No particular variable is being studied. Doing OPF-semi label prop")
 
         # Starting the experiment
-        executionTimes = []
         percentageLabelsKeep = 0.1
         results = {
                     'accs': [],
@@ -373,26 +376,25 @@ def main():
                     'percentageLabelsKeep': percentageLabelsKeep,
                     'initNbAnnotateSamples': [],
                     'nbTotalSamples': [],
+                    'annotationTime': []
                     }
         for repetition_number in range(nbRepetitions):
             print("=======> Repetition n°{} <=======".format(repetition_number))
-            startTime = time()
-
             # Doing the propagation
             newAnnotatedSamples,\
             accuracyAnnotation,\
             nbAnnotatedSamples,\
             totNumberSamples,\
-            initNbAnnotateSamples = exp.propagateLabels(propagation_mode,\
+            initNbAnnotateSamples,\
+            annotationTime = exp.propagateLabels(propagation_mode,\
                                                         percentageLabelsKeep)
             # Saving the results
             results['accs'].append(accuracyAnnotation)
             results['nbsAnnotatedSamples'].append(nbAnnotatedSamples)
             results['initNbAnnotateSamples'].append(initNbAnnotateSamples)
             results['nbTotalSamples'].append(totNumberSamples)
-            endTime = time()
-            executionTimes.append(endTime-startTime)
-        print("Needed time to do the propagation with {} for K= {}: {} +- {} s".format(propagationMode, K, np.mean(executionTimes), np.std(executionTimes)))
+            results['annotationTime'].append(annotationTime)
+        print("Needed time to do the propagation with {}: {} +- {} s".format(propagation_mode, np.mean(results['annotationTime']), np.std(results['annotationTime'])))
 
     elif (var_to_study == 'K') and (propagation_mode.lower() != 'opf-semi'):
         print("\n=======>Variable studied: {}".format(var_to_study))
@@ -405,20 +407,20 @@ def main():
                     'localQualThresh': localQualThresh,
                     'percentageLabelsKeep': percentageLabelsKeep,
                     'initNbAnnotateSamples': {},
-                    'nbTotalSamples': {}
+                    'nbTotalSamples': {},
+                    'annotationTime': {}
                     }
         for K in K_vals:
             print("\t===> Value of K = {}".format(K))
-            executionTimes = []
             for repetition_number in range(nbRepetitions):
                 print("=======> Repetition n°{} <=======".format(repetition_number))
-                startTime = time()
                 # Doing the propagation
                 newAnnotatedSamples,\
                 accuracyAnnotation,\
                 nbAnnotatedSamples,\
                 totNumberSamples,\
-                initNbAnnotateSamples = exp.propagateLabels(propagation_mode,\
+                initNbAnnotateSamples,\
+                annotationTime = exp.propagateLabels(propagation_mode,\
                                                             percentageLabelsKeep,
                                                             K=K,\
                                                             localQualThresh=localQualThresh,\
@@ -430,14 +432,14 @@ def main():
                     results['nbsAnnotatedSamples'][K] = [nbAnnotatedSamples]
                     results['initNbAnnotateSamples'][K] = [initNbAnnotateSamples]
                     results['nbTotalSamples'][K] = [totNumberSamples]
+                    results['annotationTime'][K] = [annotationTime]
                 else:
                     results['accs'][K].append(accuracyAnnotation)
                     results['nbsAnnotatedSamples'][K].append(nbAnnotatedSamples)
                     results['initNbAnnotateSamples'][K].append(initNbAnnotateSamples)
                     results['nbTotalSamples'][K].append(totNumberSamples)
-                endTime = time()
-                executionTimes.append(endTime-startTime)
-            print("Needed time to do the propagation with {} for K= {}: {} +- {} s".format(propagation_mode, K, np.mean(executionTimes), np.std(executionTimes)))
+                    results['annotationTime'][K].append(annotationTime)
+            print("Needed time to do the propagation with {} for K= {}: {} +- {} s".format(propagation_mode, K, np.mean(results['annotationTime'][K]), np.std(results['annotationTime'][K])))
 
     elif (var_to_study == 'percentageLabelsKeep'):
         print("\n=======>Variable studied: {}".format(var_to_study))
@@ -452,7 +454,8 @@ def main():
                     'localQualThresh': localQualThresh,
                     'percentageLabelsKeep': percentageLabelsKeep_vals.copy(),
                     'initNbAnnotateSamples': {},
-                    'nbTotalSamples': {}
+                    'nbTotalSamples': {},
+                    'annotationTime': {}
                     }
         for percentageLabelsKeep in percentageLabelsKeep_vals:
             print("\t===> Value of percentageLabelsKeep = {}".format(percentageLabelsKeep))
@@ -463,7 +466,8 @@ def main():
                 accuracyAnnotation,\
                 nbAnnotatedSamples,\
                 totNumberSamples,\
-                initNbAnnotateSamples = exp.propagateLabels(propagation_mode,\
+                initNbAnnotateSamples,\
+                annotationTime = exp.propagateLabels(propagation_mode,\
                                                              percentageLabelsKeep,
                                                              K=K,\
                                                              localQualThresh=localQualThresh,\
@@ -475,11 +479,13 @@ def main():
                     results['nbsAnnotatedSamples'][percentageLabelsKeep] = [nbAnnotatedSamples]
                     results['initNbAnnotateSamples'][percentageLabelsKeep] = [initNbAnnotateSamples]
                     results['nbTotalSamples'][percentageLabelsKeep] = [totNumberSamples]
+                    results['annotationTime'][percentageLabelsKeep] = [annotationTime]
                 else:
                     results['accs'][percentageLabelsKeep].append(accuracyAnnotation)
                     results['nbsAnnotatedSamples'][percentageLabelsKeep].append(nbAnnotatedSamples)
                     results['initNbAnnotateSamples'][percentageLabelsKeep].append(initNbAnnotateSamples)
                     results['nbTotalSamples'][percentageLabelsKeep].append(totNumberSamples)
+                    results['annotationTime'][percentageLabelsKeep].append(annotationTime)
 
     elif (var_to_study == 'localQualThresh') and (propagation_mode.lower() != 'opf-semi'):
         print("\n=======>Variable studied: {}".format(var_to_study))
@@ -496,7 +502,8 @@ def main():
                         'localQualThresh': localQualThresh_vals.copy(),
                         'percentageLabelsKeep': percentageLabelsKeep,
                         'initNbAnnotateSamples': {},
-                        'nbTotalSamples': {}
+                        'nbTotalSamples': {},
+                        'annotationTime': {}
                         }
             for localQualThresh in localQualThresh_vals:
                 print("\t===> Value of localQualThresh = {}".format(localQualThresh))
@@ -507,7 +514,8 @@ def main():
                     accuracyAnnotation,\
                     nbAnnotatedSamples,\
                     totNumberSamples,\
-                    initNbAnnotateSamples = exp.propagateLabels(propagation_mode,\
+                    initNbAnnotateSamples,\
+                    annotationTime = exp.propagateLabels(propagation_mode,\
                                                                  percentageLabelsKeep,
                                                                  K=K,\
                                                                  localQualThresh=localQualThresh,\
@@ -518,11 +526,13 @@ def main():
                         results['nbsAnnotatedSamples'][localQualThresh] = [nbAnnotatedSamples]
                         results['initNbAnnotateSamples'][localQualThresh] = [initNbAnnotateSamples]
                         results['nbTotalSamples'][localQualThresh] = [totNumberSamples]
+                        results['annotationTime'][localQualThresh] = [annotationTime]
                     else:
                         results['accs'][localQualThresh].append(accuracyAnnotation)
                         results['nbsAnnotatedSamples'][localQualThresh].append(nbAnnotatedSamples)
                         results['initNbAnnotateSamples'][localQualThresh].append(initNbAnnotateSamples)
                         results['nbTotalSamples'][localQualThresh].append(totNumberSamples)
+                        results['annotationTime'][localQualThresh].append(annotationTime)
 
     elif (var_to_study == 'gridSearch') and (propagation_mode.lower() != 'opf-semi'):
         print("\n=======>Variable studied: {}".format(var_to_study))
@@ -540,13 +550,13 @@ def main():
                         'localQualThresh': localQualThresh_vals.copy(),
                         'percentageLabelsKeep': percentageLabelsKeep,
                         'initNbAnnotateSamples': {},
-                        'nbTotalSamples': {}
+                        'nbTotalSamples': {},
+                        'annotationTime': {}
                         }
             for K in K_vals:
                 for localQualThresh in localQualThresh_vals:
                     print("\t===> Value of (K, localQualThresh) = ({}, {})".format(K))
                     print("\n=======> Doing computation for K = {} and localQualThresh = {}".format(K, localQualThresh))
-                    startTime = time()
                     for repetition_number in range(nbRepetitions):
                         print("=======> Repetition n°{} <=======".format(repetition_number))
                         # Doing the propagation
@@ -554,7 +564,8 @@ def main():
                         accuracyAnnotation,\
                         nbAnnotatedSamples,\
                         totNumberSamples,\
-                        initNbAnnotateSamples = exp.propagateLabels(propagation_mode,\
+                        initNbAnnotateSamples,\
+                        annotationTime = exp.propagateLabels(propagation_mode,\
                                                                      percentageLabelsKeep,
                                                                      K=K,\
                                                                      localQualThresh=localQualThresh,\
@@ -567,19 +578,100 @@ def main():
                             results['nbsAnnotatedSamples'][couple_K_tau] = [nbAnnotatedSamples]
                             results['initNbAnnotateSamples'][couple_K_tau] = [initNbAnnotateSamples]
                             results['nbTotalSamples'][couple_K_tau] = [totNumberSamples]
+                            results['annotationTime'][couple_K_tau] = [annotationTime]
                         else:
                             results['accs'][couple_K_tau].append(accuracyAnnotation)
                             results['nbsAnnotatedSamples'][couple_K_tau].append(nbAnnotatedSamples)
                             results['initNbAnnotateSamples'][couple_K_tau].append(initNbAnnotateSamples)
                             results['nbTotalSamples'][couple_K_tau].append(totNumberSamples)
-                    endTime = time()
-                    print("=======> Finishing computation for K = {} and localQualThresh = {} (computation done in {} s for {} repetitions)\n".format(K, localQualThresh, endTime - startTime, nbRepetitions))
+                            results['annotationTime'][couple_K_tau].append(annotationTime)
+
+    elif (var_to_study.lower() == 'annotationtime'):
+        nbRepetitions = 50
+        percentageLabelsKeep = 0.1
+        results = {}
+        for rep in range(nbRepetitions):
+            K_vals = [5, 10]
+            localQualThresh_vals = [0.1]
+
+            # Doing OPF Prop
+            if ('OPF-Semi' not in results):
+                results['OPF-Semi'] = {
+                                        'accs': [],
+                                        'nbsAnnotatedSamples': [],
+                                        'initNbAnnotateSamples': [],
+                                        'nbTotalSamples': [],
+                                        'annotationTime': []
+                                      }
+            newAnnotatedSamples,\
+            accuracyAnnotation,\
+            nbAnnotatedSamples,\
+            totNumberSamples,\
+            initNbAnnotateSamples,\
+            annotationTime = exp.propagateLabels('OPF-Semi',\
+                                                 percentageLabelsKeep)
+            results['OPF-Semi']['accs'].append(accuracyAnnotation)
+            results['OPF-Semi']['nbsAnnotatedSamples'].append(nbAnnotatedSamples)
+            results['OPF-Semi']['initNbAnnotateSamples'].append(initNbAnnotateSamples)
+            results['OPF-Semi']['nbTotalSamples'].append(totNumberSamples)
+            results['OPF-Semi']['annotationTime'].append(annotationTime)
+
+            # Doing KNN prop
+            for K in K_vals:
+                # Doing Std-KNN prop
+                if ('Std-KNN-K{}'.format(K) not in results):
+                    results['Std-KNN-K{}'.format(K)] = {
+                                            'accs': [],
+                                            'nbsAnnotatedSamples': [],
+                                            'initNbAnnotateSamples': [],
+                                            'nbTotalSamples': [],
+                                            'annotationTime': []
+                                          }
+                newAnnotatedSamples,\
+                accuracyAnnotation,\
+                nbAnnotatedSamples,\
+                totNumberSamples,\
+                initNbAnnotateSamples,\
+                annotationTime = exp.propagateLabels('classicalProp',\
+                                                     percentageLabelsKeep,
+                                                     K=K)
+                results['Std-KNN-K{}'.format(K)]['accs'].append(accuracyAnnotation)
+                results['Std-KNN-K{}'.format(K)]['nbsAnnotatedSamples'].append(nbAnnotatedSamples)
+                results['Std-KNN-K{}'.format(K)]['initNbAnnotateSamples'].append(initNbAnnotateSamples)
+                results['Std-KNN-K{}'.format(K)]['nbTotalSamples'].append(totNumberSamples)
+                results['Std-KNN-K{}'.format(K)]['annotationTime'].append(annotationTime)
+
+                for localQualThresh in localQualThresh_vals:
+                    # Doing LQ-KNN
+                    if ('LQ-KNN-K{}-tau{}'.format(K, localQualThresh) not in results):
+                        results['LQ-KNN-K{}-tau{}'.format(K, localQualThresh)] = {
+                                                'accs': [],
+                                                'nbsAnnotatedSamples': [],
+                                                'initNbAnnotateSamples': [],
+                                                'nbTotalSamples': [],
+                                                'annotationTime': []
+                                              }
+                    newAnnotatedSamples,\
+                    accuracyAnnotation,\
+                    nbAnnotatedSamples,\
+                    totNumberSamples,\
+                    initNbAnnotateSamples,\
+                    annotationTime = exp.propagateLabels('propLocalQual',\
+                                                         percentageLabelsKeep,
+                                                         K=K,\
+                                                         localQualThresh=localQualThresh,\
+                                                         sorted_qualities=True)
+                    results['LQ-KNN-K{}-tau{}'.format(K, localQualThresh)]['accs'].append(accuracyAnnotation)
+                    results['LQ-KNN-K{}-tau{}'.format(K, localQualThresh)]['nbsAnnotatedSamples'].append(nbAnnotatedSamples)
+                    results['LQ-KNN-K{}-tau{}'.format(K, localQualThresh)]['initNbAnnotateSamples'].append(initNbAnnotateSamples)
+                    results['LQ-KNN-K{}-tau{}'.format(K, localQualThresh)]['nbTotalSamples'].append(totNumberSamples)
+                    results['LQ-KNN-K{}-tau{}'.format(K, localQualThresh)]['annotationTime'].append(annotationTime)
 
     else:
-        raise NotImplementedErrror("var_to_study {} is not supported yet".format(var_to_study))
+        raise NotImplementedError("var_to_study {} is not supported yet".format(var_to_study))
 
     # Plotting the results
-    plotResults(results, var_to_study)
+    # plotResults(results, var_to_study)
 
     # Saving the results
     if (len(results) > 0):

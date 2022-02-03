@@ -14,6 +14,7 @@ import random
 from time import time
 import copy
 from opfython.models import SemiSupervisedOPF
+import time
 
 def getSamplesInformation(labeled_samples, unlabeled_samples):
     """
@@ -138,6 +139,7 @@ def propagateLabels_LQKNN(
         else:
             new_labels.append(labels[id_sample])
 
+    startTime = time.time()
     # Number of classes
     nbClasses = len(np.unique([l for l in labels if l is not None]))
 
@@ -235,12 +237,14 @@ def propagateLabels_LQKNN(
                     accuracy_annotation = accuracy_annotation/nb_annotated_samples
                 else:
                     accuracy_annotation = 1
-
+            endTime = time.time()
+            annotation_time = endTime - startTime
             return new_annotated_samples,\
                    accuracy_annotation,\
                    nb_annotated_samples,\
                    total_number_of_samples,\
-                   number_initial_labeled_samples
+                   number_initial_labeled_samples,\
+                   annotation_time
 
 def propagateLabelsLocalQuality_LQKNN_withoutSort(
                             labeled_samples,
@@ -316,6 +320,7 @@ def propagateLabelsLocalQuality_LQKNN_withoutSort(
         else:
             new_labels.append(labels[id_sample])
 
+    startTime = time.time()
     # Number of classes
     nbClasses = len(np.unique([l for l in labels if l is not None]))
 
@@ -392,12 +397,14 @@ def propagateLabelsLocalQuality_LQKNN_withoutSort(
                     accuracy_annotation = accuracy_annotation/nb_annotated_samples
                 else:
                     accuracy_annotation = 1
-
+            endTime = time.time()
+            annotation_time = endTime - startTime
             return new_annotated_samples,\
                    accuracy_annotation,\
                    nb_annotated_samples,\
                    total_number_of_samples,\
-                   number_initial_labeled_samples
+                   number_initial_labeled_samples,\
+                   annotation_time
 
 
 
@@ -465,6 +472,7 @@ def propagateLabels_StdKNN(
         else:
             new_labels.append(labels[id_sample])
 
+    startTime = time.time()
     # Number of classes
     nbClasses = len(np.unique([l for l in labels if l is not None]))
 
@@ -540,12 +548,14 @@ def propagateLabels_StdKNN(
                 else:
                     accuracy_annotation = 1
 
-
+            endTime = time.time()
+            annotation_time = endTime - startTime
             return new_annotated_samples,\
                    accuracy_annotation,\
                    nb_annotated_samples,\
                    total_number_of_samples,\
-                   number_initial_labeled_samples
+                   number_initial_labeled_samples,\
+                   annotation_time
 
 
 def propagateLabels_OPF(
@@ -597,6 +607,7 @@ def propagateLabels_OPF(
     print("Number of unlabeled samples: {} ({} %)".format(len(X_unlabeled), len(X_unlabeled)/(len(X_labeled)+len(X_unlabeled))))
 
     # Doing the propagation
+    startTime = time.time()
     opf = SemiSupervisedOPF(distance='log_squared_euclidean', pre_computed_distance=None)
     opf.fit(X_labeled, Y_labeled, X_unlabeled)
     predicted_labels_X_unlabeled = opf.predict(X_unlabeled)
@@ -627,9 +638,11 @@ def propagateLabels_OPF(
         new_annotated_samples.append(sampleToAdd)
 
 
-
+    endTime = time.time()
+    annotation_time = endTime - startTime
     return new_annotated_samples,\
            accuracy_annotation,\
            nb_annotated_samples,\
            total_number_of_samples,\
-           number_initial_labeled_samples
+           number_initial_labeled_samples,\
+           annotation_time
