@@ -51,7 +51,9 @@ The code is structured in different folders:
 
 To execute a simple experiment doing label propagation you can simply execute the code "label_propagation.py" in the "examples" folder:  
 
-        python ./examples/label_propagation.py
+        python label_propagation.py
+
+It is important that you **execute** all the codes in the example's folder **from the example's folder** as they use relative paths to load some data.
 
 This code will generate two figures for our proposed method with $\tau=0.1$:
 *  One showing the annotation accuracy with respect to the considered neighborhood used for label propagation.
