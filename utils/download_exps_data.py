@@ -81,9 +81,33 @@ def download_label_propagation_data():
     if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')):
         os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')
     projections_folders = [
+                            'EmbeddedRepresentations_perp10_lr10_earlyEx50_dim2_0',\
+                            'EmbeddedRepresentations_perp10_lr10_earlyEx250_dim2_0',\
+                            'EmbeddedRepresentations_perp10_lr10_earlyEx500_dim2_0',\
+                            'EmbeddedRepresentations_perp10_lr100_earlyEx50_dim2_0',\
+                            'EmbeddedRepresentations_perp10_lr100_earlyEx250_dim2_0',\
+                            'EmbeddedRepresentations_perp10_lr100_earlyEx500_dim2_0',\
+                            'EmbeddedRepresentations_perp10_lr1000_earlyEx50_dim2_0',\
+                            'EmbeddedRepresentations_perp10_lr1000_earlyEx250_dim2_0',\
                             'EmbeddedRepresentations_perp10_lr1000_earlyEx500_dim2_0',\
+                            'EmbeddedRepresentations_perp30_lr10_earlyEx50_dim2_0',\
+                            'EmbeddedRepresentations_perp30_lr10_earlyEx250_dim2_0',\
+                            'EmbeddedRepresentations_perp30_lr10_earlyEx500_dim2_0',\
+                            'EmbeddedRepresentations_perp30_lr100_earlyEx50_dim2_0',\
                             'EmbeddedRepresentations_perp30_lr100_earlyEx250_dim2_0',\
-                            'EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0'
+                            'EmbeddedRepresentations_perp30_lr100_earlyEx500_dim2_0',\
+                            'EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0',\
+                            'EmbeddedRepresentations_perp30_lr1000_earlyEx250_dim2_0',\
+                            'EmbeddedRepresentations_perp30_lr1000_earlyEx500_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr10_earlyEx50_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr10_earlyEx250_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr10_earlyEx500_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr100_earlyEx50_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr100_earlyEx250_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr100_earlyEx500_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr1000_earlyEx50_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr1000_earlyEx250_dim2_0',\
+                            'EmbeddedRepresentations_perp50_lr1000_earlyEx500_dim2_0'
                           ]
     for projection_folder in projections_folders:
         if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/'+projection_folder)):
@@ -93,20 +117,18 @@ def download_label_propagation_data():
     # selected projections by out method
     download_file(
                     file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/resultsProjectionSelection.json',\
-                    dir_store='../models/MNIST_Example_0//Projections_Example-Dim-Reduction_0/',\
+                    dir_store='../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/',\
                     file_name='resultsProjectionSelection.json'
                 )
 
     # For each projection folder, downloading the different files
-    files_to_download = ['corankingMatrix_0.pth', 'dataSplits_0.pth',\
-    'images_0.pth', 'labels_0.pth', 'localQuality_ks10_kt10_0.pth',\
-    'quality_0.pth', 'ranksR_0.pth', 'ranksRho_0.pth', 'representations_0.pth',\
-    'tsne_params.json']
+    files_to_download = ['dataSplits_0.pth', 'images_0.pth', 'labels_0.pth',\
+    'localQuality_ks10_kt10_0.pth', 'representations_0.pth', 'tsne_params.json']
     for projection_folder in projections_folders:
         for file_to_download in files_to_download:
             download_file(
                             file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/{}/{}'.format(projection_folder, file_to_download),\
-                            dir_store='../models/MNIST_Example_0//Projections_Example-Dim-Reduction_0/'+projection_folder,\
+                            dir_store='../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/'+projection_folder,\
                             file_name=file_to_download
                         )
 
@@ -128,18 +150,16 @@ def download_label_propagation_results_classification_data():
         os.mkdir('../models/MNIST_Example_0/')
     if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')):
         os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')
-    if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/')):
-        os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/')
-    if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/ClassificationResults/')):
-        os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/ClassificationResults/')
+    if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/ClassificationResults/')):
+        os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/ClassificationResults/')
 
     # Downloading the files
     files_to_download = ['LQ-kNN_CE_0.pth', 'LQ-kNN_GCE_0.pth', 'NoProp_CE_0.pth',\
     'NoProp_GCE_0.pth', 'Std-kNN_CE_0.pth', 'Std-kNN_GCE_0.pth']
     for file_to_download in files_to_download:
         download_file(
-                        file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/ClassificationResults/'+file_to_download,\
-                        dir_store='../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/ClassificationResults/',\
+                        file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/ClassificationResults/'+file_to_download,\
+                        dir_store='../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/ClassificationResults/',\
                         file_name=file_to_download
                     )
 
@@ -154,23 +174,20 @@ def download_label_propagation_results_data():
         os.mkdir('../models/MNIST_Example_0/')
     if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')):
         os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/')
-    if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/')):
-        os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/')
-    if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/LabelPropResults/')):
-        os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/LabelPropResults/')
+    if (not os.path.exists('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/LabelPropResults/')):
+        os.mkdir('../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/LabelPropResults/')
 
     # Downloading the files
     files_to_download = [
                             'LQ-KNN-01_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.1_percentageLabelsKeep-0.1_0.pth',\
-                            'LQ-KNN-02_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.2_percentageLabelsKeep-0.1_0.pth',\
                             'LQ-KNN-03_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.3_percentageLabelsKeep-0.1_0.pth',\
-                            'LQ-KNN-04_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.4_percentageLabelsKeep-0.1_0.pth',\
                             'LQ-KNN-05_propMode-propLocalQual_var-to-study-K_sorted-qualities-True_localQualThreshod-0.5_percentageLabelsKeep-0.1_0.pth',\
                             'Std-KNN_propMode-classicalProp_var-to-study-K_percentageLabelsKeep-0.1_0.pth',\
+                            'OPF-Semi_propMode-OPF-Semi_var-to-study-None_percentageLabelsKeep-0.1_0.pth'
                         ]
     for file_to_download in files_to_download:
         download_file(
-                        file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/LabelPropResults/'+file_to_download,\
-                        dir_store='../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/LabelPropResults/',\
+                        file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/LabelPropResults/'+file_to_download,\
+                        dir_store='../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/LabelPropResults/',\
                         file_name=file_to_download
                     )

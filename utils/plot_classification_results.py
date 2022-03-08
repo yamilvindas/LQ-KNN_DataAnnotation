@@ -118,7 +118,7 @@ def main():
     # Construct the argument parser
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
-    default_classif_res_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/ClassificationResults/'
+    default_classif_res_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/ClassificationResults/'
     ap.add_argument('--classif_res_folder', default=default_classif_res_folder, help="Path to the folder containing the classfication results (obtained using the code example/label_propagation_with_classification.py)", type=str)
     args = vars(ap.parse_args())
 

@@ -320,7 +320,8 @@ class ClassificationExperiment(object):
             accuracy_annotation,\
             nb_annotated_samples,\
             total_number_of_samples,\
-            number_initial_labeled_samples = propagateLabels_OPF(labeled_samples, unlabeled_samples)
+            number_initial_labeled_samples,\
+            annotation_time = propagateLabels_OPF(labeled_samples, unlabeled_samples)
         elif (self.propagationMethod.lower() == 'lq-knn'):
             try:
                 if (self.sortedQualities):
@@ -333,13 +334,15 @@ class ClassificationExperiment(object):
             accuracy_annotation,\
             nb_annotated_samples,\
             total_number_of_samples,\
-            number_initial_labeled_samples = prop_method(labeled_samples, unlabeled_samples, self.K, self.localQualThresh)
+            number_initial_labeled_samples,\
+            annotation_time = prop_method(labeled_samples, unlabeled_samples, self.K, self.localQualThresh)
         elif (self.propagationMethod.lower() == 'std-knn'):
             new_annotated_samples,\
             accuracy_annotation,\
             nb_annotated_samples,\
             total_number_of_samples,\
-            number_initial_labeled_samples = propagateLabels_StdKNN(labeled_samples, unlabeled_samples, self.K)
+            number_initial_labeled_samples,\
+            annotation_time = propagateLabels_StdKNN(labeled_samples, unlabeled_samples, self.K)
         elif (self.propagationMethod.lower() == 'noprop'):
             new_annotated_samples = labeled_samples
             accuracy_annotation = 1

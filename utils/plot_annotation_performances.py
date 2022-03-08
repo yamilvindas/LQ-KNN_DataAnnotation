@@ -35,17 +35,24 @@ def plotAnnotationAccuracy(label_prop_results_folder, var_to_study):
     for result_name in results:
         plot_name = result_name.split('_')[0]
         # Values of the x-axis
-        x_vals = list(results[result_name]['accs'].keys())
+        if ('opf-semi' in result_name.lower()):
+            x_vals = [1]
+        else:
+            x_vals = list(results[result_name]['accs'].keys())
         x_vals.sort()
 
         # Values of the y-axis
         y_mean, y_std = [], []
         for x in x_vals:
-            y_mean.append(np.mean(results[result_name]['accs'][x]))
-            y_std.append(np.std(results[result_name]['accs'][x]))
+            if ('opf-semi' in result_name.lower()):
+                y_mean.append(np.mean(results[result_name]['accs']))
+                y_std.append(np.std(results[result_name]['accs']))
+            else:
+                y_mean.append(np.mean(results[result_name]['accs'][x]))
+                y_std.append(np.std(results[result_name]['accs'][x]))
 
         # Plotting the error bars
-        plt.errorbar(x_vals, y_mean, yerr=y_std, label=plot_name)
+        plt.errorbar(x_vals, y_mean, yerr=y_std, label=plot_name, fmt='*')
         plt.xlabel("Annotation accuracy")
         plt.ylabel(var_to_study)
     plt.legend()
@@ -55,17 +62,24 @@ def plotAnnotationAccuracy(label_prop_results_folder, var_to_study):
     for result_name in results:
         plot_name = result_name.split('_')[0]
         # Values of the x-axis
-        x_vals = list(results[result_name]['nbsAnnotatedSamples'].keys())
-        x_vals.sort()
+        if ('opf-semi' in result_name.lower()):
+            x_vals = [1]
+        else:
+            x_vals = list(results[result_name]['nbsAnnotatedSamples'].keys())
+            x_vals.sort()
 
         # Values of the y-axis
         y_mean, y_std = [], []
         for x in x_vals:
-            y_mean.append(np.mean(results[result_name]['nbsAnnotatedSamples'][x]))
-            y_std.append(np.std(results[result_name]['nbsAnnotatedSamples'][x]))
+            if ('opf-semi' in result_name.lower()):
+                y_mean.append(np.mean(results[result_name]['nbsAnnotatedSamples']))
+                y_std.append(np.std(results[result_name]['nbsAnnotatedSamples']))
+            else:
+                y_mean.append(np.mean(results[result_name]['nbsAnnotatedSamples'][x]))
+                y_std.append(np.std(results[result_name]['nbsAnnotatedSamples'][x]))
 
         # Plotting the error bars
-        plt.errorbar(x_vals, y_mean, yerr=y_std, label=plot_name)
+        plt.errorbar(x_vals, y_mean, yerr=y_std, label=plot_name, fmt='*')
         plt.xlabel("Number of labeled samples")
         plt.ylabel(var_to_study)
     plt.legend()
@@ -76,7 +90,7 @@ def main():
     # Construct the argument parser
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
-    default_label_prop_results_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/EmbeddedRepresentations_perp30_lr1000_earlyEx50_dim2_0/LabelPropResults/'
+    default_label_prop_results_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/LabelPropResults/'
     default_var_to_study = 'K'
     ap.add_argument('--label_prop_results_folder', default=default_label_prop_results_folder, help="Path to a label propagation results folder (obtained using the code examples/evaluation_label_propagation.py)", type=str)
     ap.add_argument('--var_to_study', default=default_var_to_study, help="Studied variable which indicates which results have to be plotted. Four choices: K, percentageLabelsKeep, localQualThresh and None", type=str)

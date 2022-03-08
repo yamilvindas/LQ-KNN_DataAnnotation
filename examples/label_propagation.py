@@ -318,7 +318,7 @@ def main():
     ap.add_argument('--exp_ID', default='evaluation_label_propagation_MNIST', help="Name of the experiment", type=str)
     ap.add_argument("--projections_folder", default=default_projections_folder, help="Folder to the files describing the embedded data", type=str)
     ap.add_argument('--propagation_mode', default='propLocalQual', help="Mode to propagate labels (propLocalQual or classicalProp or OPF-Semi)", type=str)
-    ap.add_argument('--var_to_study', default=None, help="Variable to study (K, percentageLabelsKeep or localQualThresh)", type=str)
+    ap.add_argument('--var_to_study', default="K", help="Variable to study (K, percentageLabelsKeep or localQualThresh)", type=str)
     ap.add_argument('--sorted_qualities', default='True', help="True if wanted to sort the samples by local quality when propagating the labels using LQ-KNN", type=str)
     ap.add_argument('--local_quality_threshold', default=0.1, help="Local quality threshold to use if propLocalQual mode is used and the variable to study is not the local quality threshold", type=float)
     ap.add_argument('--ks', default=10, help="Value of ks to choose the local quality file to use for LQ-kNN", type=str)
@@ -351,7 +351,6 @@ def main():
     if ('/MNIST_Example_0/' in projections_folder):
         download_label_propagation_data()
 
-
     #==========================================================================#
     # Initializing the experiment
     exp = Experiment(exp_ID, projections_folder, ks, kt, projection_type_to_use)
@@ -360,6 +359,8 @@ def main():
     results = {}
     if (propagation_mode.lower() == 'opf-semi'):
         nbRepetitions = 20
+        if (var_to_study.lower() != 'annotationtime'):
+            var_to_study = None
     else:
         nbRepetitions = 50 # For statistical purposes
     if (var_to_study is None): # In this case we do OPF-Semi label propagation
@@ -671,7 +672,8 @@ def main():
         raise NotImplementedError("var_to_study {} is not supported yet".format(var_to_study))
 
     # Plotting the results
-    # plotResults(results, var_to_study)
+    if (propagation_mode.lower() != 'opf-semi'):
+        plotResults(results, var_to_study)
 
     # Saving the results
     if (len(results) > 0):
@@ -700,7 +702,9 @@ def main():
                 fileName += '_percentageLabelsKeep-{}'.format(percentageLabelsKeep)
 
         elif (propagation_mode.lower() == 'opf-semi'):
-            fileName += '_propMode-{}'.format(propagation_mode)
+            if (var_to_study is None):
+                var_to_study = 'None'
+            fileName += '_propMode-{}_var-to-study-{}_sorted-qualities-{}'.format(propagation_mode, var_to_study, str(sorted_qualities))
 
         inc = 0
         while (os.path.isfile(fileName+ '_' + str(inc) + '.pth')):
