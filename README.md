@@ -2,7 +2,7 @@
 
 ## I) Introduction
 
-This repository presents the code of the MNIST experiments of the submitted paper *Semi-automatic data annotation based on feature space projection and local quality metrics: An application to Cerebral Emboli characterization*.
+This repository presents the code of the MNIST and OrganCMNIST experiments of the submitted paper *Semi-automatic data annotation based on feature space projection and local quality metrics: An application to Cerebral Emboli characterization*.
 
 ## II) Configuration
 

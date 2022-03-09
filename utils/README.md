@@ -13,6 +13,7 @@
  It has two options:
  * *label_prop_results_folder*: Path to a label propagation results folder (obtained using the code examples/evaluation_label_propagation.py)
  * *var_to_study*: Studied variable which indicates which results have to be plotted.  
+ * *default_dataset*: Default dataset to plot the results (it uses precomputed metics). Two options: MNIST and OrganCMNIST. Only used if --label_prop_results_folder is None.
  
 If the code is launched without any option, it will show the results of precomuted label propagation runs:
 
@@ -24,6 +25,7 @@ If the code is launched without any option, it will show the results of precomut
  
 Plot the results of a classification experiment using a semi-automatically labeled dataset. It has one option:
 * *classif_res_folder*: Path to the folder containing the classfication results. This folder is usually obtained using the code *example/label_propagation_with_classification.py*.
+* *default_dataset*: Default dataset to plot the results (it uses precomputed metics). Two options: MNIST and OrganCMNIST. Only used if --classif_res_folder is None
 
 If the code is launched without any options, it will plot the classification results shown in the submitted paper:
 

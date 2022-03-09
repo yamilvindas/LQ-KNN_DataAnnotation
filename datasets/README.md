@@ -3,6 +3,6 @@
 
 This folder will store the different datasets that can be used to test our proposed method.
 
-When cloning the project, this folder will be empty. However, when executing the feature extraction codes, the MNIST dataset will be downloaded here.
+When cloning the project, this folder will be empty. However, when executing the feature extraction codes, the MNIST and OrganCMNIST dataset will be downloaded here.
 
 Other datasets can be tested, but this implies changing some lines of codes in the *src* files.
