@@ -68,13 +68,15 @@ class GeneralizedCrossEntropy(torch.nn.Module):
 #=============================Classification Model=============================#
 #==============================================================================#
 class MnistClassificationModel(nn.Module):
-    def __init__(self):
+    def __init__(self, in_features_fc1=80, nb_classes=10):
         super(MnistClassificationModel, self).__init__()
+        self.in_features_fc1 = in_features_fc1
+
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         self.conv2_drop = nn.Dropout2d()
-        self.fc1 = nn.Linear(80, 50)
-        self.fc2 = nn.Linear(50, 10)
+        self.fc1 = nn.Linear(self.in_features_fc1, 50)
+        self.fc2 = nn.Linear(50, nb_classes)
 
     def forward(self, x):
         # Conv Block 1
@@ -83,7 +85,7 @@ class MnistClassificationModel(nn.Module):
         x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
         # Classification block
         # Reshape
-        x = x.view(-1, 80)
+        x = x.view(-1, self.in_features_fc1)
         # FC 1
         x = F.relu(self.fc1(x))
         x = F.dropout(x)

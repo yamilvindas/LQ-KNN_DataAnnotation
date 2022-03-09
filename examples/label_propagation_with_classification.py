@@ -56,6 +56,7 @@ import torch
 from torch.utils.data import Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torchvision
+from PIL import Image
 import matplotlib.pyplot as plt
 import random
 import numpy as np
@@ -63,6 +64,7 @@ from src.classification_model import MnistClassificationModel, GeneralizedCrossE
 from src.label_propagation import propagateLabels_LQKNN, propagateLabelsLocalQuality_LQKNN_withoutSort
 from src.label_propagation import propagateLabels_StdKNN, propagateLabels_OPF
 from src.optimal_projection_selection import select_optimal_projection
+from src.medMNIST import loadFromHDF5, mix_data_splits, MedMNIST
 from utils.download_exps_data import download_label_propagation_with_classification_data
 
 #==============================================================================#
@@ -114,7 +116,8 @@ class ClassificationExperiment(object):
                  batchSizeTrain,\
                  batchSizeTest,\
                  lossFunction,\
-                 device):
+                 device,\
+                 dataset_name):
         """
             Class that compares two semi-automatic annotatio methods. The first
             one uses KNN and the local quality of samples to propagate labels
@@ -166,6 +169,9 @@ class ClassificationExperiment(object):
                 Loss function to use for training. Two options: 'CE' and 'GCE'
             device: str
                 Device to do the computations 'CPU' or 'GPU'.
+            dataset_name: str
+                Name of the dataset to use for feature extraction. Two options
+                are possible: MNIST and OrganCMNIST.
         """
         # Defining the name of the experiment
         self.expID = expID
@@ -180,6 +186,7 @@ class ClassificationExperiment(object):
         self.lr = lr
         self.weightDecay = weightDecay
         self.nbEpochs = nbEpochs
+        self.dataset_name = dataset_name
         self.batchSizeTrain = batchSizeTrain
         self.batchSizeTest = batchSizeTest
         self.nbClasses = 10
@@ -377,10 +384,33 @@ class ClassificationExperiment(object):
         data = {}
         currentID = 0
         for sample in labeled_samples:
-            data[currentID] = {'Data':sample['Image'], 'Label':sample['Label']}
+            if (type(sample['Image']) == str):
+                sample_data = np.asarray(Image.open(sample['Image']))/255.
+                if (len(sample_data.shape) == 3):
+                    sample_data = np.moveaxis(sample_data, 2, 0) # Because in pytorch the channel has to be in the first position
+                else:
+                    sample_data = sample_data.reshape((1, sample_data.shape[0], sample_data.shape[1]))
+                image = torch.tensor(sample_data)
+                image = image.type("torch.FloatTensor") # To avoid problems with types
+            else:
+                image = sample['Image']
+            data[currentID] = {'Data':image, 'Label':sample['Label']}
+
             currentID += 1
+
         for sample in new_labeled_samples:
-            data[currentID] = {'Data':sample['Image'], 'Label':sample['Label']}
+            if (type(sample['Image']) == str):
+                sample_data = np.asarray(Image.open(sample['Image']))/255.
+                if (len(sample_data.shape) == 3):
+                    sample_data = np.moveaxis(sample_data, 2, 0) # Because in pytorch the channel has to be in the first position
+                else:
+                    sample_data = sample_data.reshape((1, sample_data.shape[0], sample_data.shape[1]))
+                image = torch.tensor(sample_data)
+                image = image.type("torch.FloatTensor") # To avoid problems with types
+            else:
+                image = sample['Image']
+            data[currentID] = {'Data':image, 'Label':sample['Label']}
+
             currentID += 1
 
         # Creating the train dataset
@@ -395,10 +425,16 @@ class ClassificationExperiment(object):
         """
             Creates the test data loader for classification.
         """
-        transform = torchvision.transforms.Compose([torchvision.transforms.CenterCrop(20), torchvision.transforms.ToTensor()])
-        testDataset = torchvision.datasets.MNIST(
-            root="~/torch_datasets", train=False, transform=transform, download=True
-        )
+        # Creating the test dataset
+        if (self.dataset_name.lower() == 'mnist'):
+            transform = torchvision.transforms.Compose([torchvision.transforms.CenterCrop(20), torchvision.transforms.ToTensor()])
+            testDataset = torchvision.datasets.MNIST(
+                root="~/torch_datasets", train=False, transform=transform, download=True
+            )
+        elif (self.dataset_name.lower() == 'organcmnist'):
+            _, _, self.test_data = loadFromHDF5('../datasets/organcmnist_0/data.hdf5') # HITS Dataset
+            testDataset = MedMNIST(self.test_data)
+        # Creating the test data loader
         self.testLoader = torch.utils.data.DataLoader(
             testDataset, batch_size=self.batchSizeTest, shuffle=False, num_workers=4
         )
@@ -411,7 +447,12 @@ class ClassificationExperiment(object):
             the test set defined by torchvision.
         """
         # Model
-        model = MnistClassificationModel()
+        if (self.dataset_name.lower()=='mnist'):
+            model = MnistClassificationModel(in_features_fc1=80, nb_classes=10)
+        elif (self.dataset_name.lower()=='organcmnist'):
+            model = MnistClassificationModel(in_features_fc1=320, nb_classes=11)
+        else:
+            raise NotImplementedError("Dataset {} has not been implemented")
         model.double()
         model = model.to(self.device)
 
@@ -541,6 +582,7 @@ def main():
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
     default_projections_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/'
+    # default_projections_folder = '../models/OrganCMNIST_Example_0/Projections_Example-Dim-Reduction_0/'
     ap.add_argument("--parameters_file", required=False, default="../parameters_files/default_parameters_classification.json", help="File containing the parameters of the experiment", type=str)
     ap.add_argument("--projections_folder", default=default_projections_folder, help="Folder to the files describing the embedded data", type=str)
     args = vars(ap.parse_args())
@@ -616,14 +658,18 @@ def main():
 
     if ('projection_type_to_use' not in parameters_dict):
         parameters_dict['projection_type_to_use'] = 'Best'
+
+    if ('dataset_name' not in parameters_dict):
+        parameters_dict['dataset_name'] = 'MNIST'
+
     print("\n\n=======>Using {} projectio for label propagation\n\n".format(parameters_dict['projection_type_to_use']))
 
     #==========================================================================#
     #==========================================================================#
     # If the default parameters are used, we area going to download the
     # useful data if it has not been done already
-    if ('/MNIST_Example_0/' in projections_folder):
-        download_label_propagation_with_classification_data()
+    if (parameters_dict['dataset_name'].lower() in ['mnist', 'organcmnist']):
+        download_label_propagation_with_classification_data(parameters_dict['dataset_name'])
 
     #==========================================================================#
     #==========================================================================#
@@ -647,6 +693,7 @@ def main():
                                          batchSizeTest=parameters_dict['batchSizeTest'],\
                                          lossFunction=parameters_dict['lossFunction'],\
                                          device=parameters_dict['device'],\
+                                         dataset_name=parameters_dict['dataset_name']
                                     )
     print("=======> DONE")
     print("====================================================================")

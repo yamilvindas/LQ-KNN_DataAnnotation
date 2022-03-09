@@ -15,5 +15,6 @@
   "lossFunction": "GCE",
   "device": "GPU",
   "nbRepetitions": 50,
-  "projection_type_to_use": "Best"
+  "projection_type_to_use": "Best",
+  "dataset_name": "MNIST"
 }

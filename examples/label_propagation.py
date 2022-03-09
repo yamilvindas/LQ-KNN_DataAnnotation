@@ -315,6 +315,7 @@ def main():
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
     default_projections_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/'
+    # default_projections_folder = '../models/OrganCMNIST_Example_0/Projections_Example-Dim-Reduction_0/'
     ap.add_argument('--exp_ID', default='evaluation_label_propagation_MNIST', help="Name of the experiment", type=str)
     ap.add_argument("--projections_folder", default=default_projections_folder, help="Folder to the files describing the embedded data", type=str)
     ap.add_argument('--propagation_mode', default='propLocalQual', help="Mode to propagate labels (propLocalQual or classicalProp or OPF-Semi)", type=str)
@@ -349,7 +350,10 @@ def main():
     # If the default parameters are used, we area going to download the
     # useful data if it has not been done already
     if ('/MNIST_Example_0/' in projections_folder):
-        download_label_propagation_data()
+        download_label_propagation_data('MNIST')
+    elif ('/OrganCMNIST_Example_0/' in projections_folder):
+        download_label_propagation_data('OrganCMNIST')
+
 
     #==========================================================================#
     # Initializing the experiment

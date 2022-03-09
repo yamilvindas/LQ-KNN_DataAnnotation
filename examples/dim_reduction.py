@@ -8,12 +8,24 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 from utils.download_exps_data import download_dim_red_data
+import argparse
 
 def main():
+    # =========================================================================#
+    #==========================================================================#
+    # Construct the argument parser
+    ap = argparse.ArgumentParser()
+    # Add the arguments to the parser
+    ap.add_argument("--dataset", default='MNIST', help="Name of the dataset to use", type=str)
+    args = vars(ap.parse_args())
+
+    # Points file and target dim
+    dataset = args['dataset']
+
     #=========================================================================#
     #=========================================================================#
     # Downloading the useful data for the experiment
-    download_dim_red_data()
+    download_dim_red_data(dataset)
 
     #=========================================================================#
     #=========================================================================#
@@ -22,7 +34,10 @@ def main():
     print("\n==================================================================")
     print("==================Computing multiple projections==================")
     exp_name = 'Example-Dim-Reduction'
-    representations_file = '../models/MNIST_Example_0/CompressedRepresentations/training_representations.pth'
+    if (dataset.lower() == 'mnist'):
+        representations_file = '../models/MNIST_Example_0/CompressedRepresentations/training_representations.pth'
+    elif (dataset.lower() == 'organcmnist'):
+        representations_file = '../models/OrganCMNIST_Example_0/CompressedRepresentations/training_representations.pth'
     target_dim = 2
     with subprocess.Popen(\
                             [
@@ -47,13 +62,19 @@ def main():
     # based on the Silhouette Score
     print("\n\n==================================================================")
     print("==================Selecting the optimal projection==================")
-    projections_folder = '../models/MNIST_Example_0/Projections_{}_0/'.format(exp_name)
+    if (dataset.lower() == 'mnist'):
+        projections_folder = '../models/MNIST_Example_0/Projections_{}_0/'.format(exp_name)
+    elif (dataset.lower() == 'organcmnist'):
+        projections_folder = '../models/OrganCMNIST_Example_0/Projections_{}_0/'.format(exp_name)
+
     with subprocess.Popen(\
                             [
                                 'python',\
                                 '../src/optimal_projection_selection.py',\
                                 '--projections_folder',\
-                                projections_folder
+                                projections_folder,\
+                                '--percentage_labels_keep',\
+                                '0.1'
                             ], stdout=subprocess.PIPE
                          ) as proc:
         for line in proc.stdout:

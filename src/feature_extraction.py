@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    This code does a dimensionality reduction of the input data MNIST using a
+    This code does a dimensionality reduction of the input data using a
     Convolutional Autoencoder
     It has one option:
         * --parameters_file: A json file containing the parameters for training the
@@ -9,11 +9,11 @@
         we will use the default file located in ../parameters_files/
 
     This code produces different files:
-        * ../models/MNIST_EXP_ID/Model/model.pth: A pth file containing the parameters
+        * ../models/DATASET-NAME_EXP_ID/Model/model.pth: A pth file containing the parameters
         of the trained autoencoder.
-        * ../models/MNIST_EXP_ID/Model/metrics.hdf5: An hdf5 file containing
+        * ../models/DATASET-NAME_EXP_ID/Model/metrics.hdf5: An hdf5 file containing
         the metrics of the training and testing of the model
-        * ../models/MNIST_EXP_ID/CompressedRepresentations/training_representations.pth:
+        * ../modelsDATASET-NAMET_EXP_ID/CompressedRepresentations/training_representations.pth:
         A pth file containing different information from the different compressed
         training points. When loaded into python it is a list where each element
         corresponds to a dict representing the points over the different epochs.
@@ -21,7 +21,7 @@
             - 'compressed_representation': Compressed Representation (in terms
             of dimensionality) of the original data sample
             - 'label': Class (or scores) of the reduced dim sample
-        * ../models/MNIST_EXP_ID/CompressedRepresentations/testing_representations_MNIST_ID.txt:
+        * ../models/DATASET-NAME_EXP_ID/CompressedRepresentations/testing_representations_ID.txt:
         Same as before but for the testing data.
 """
 
@@ -40,6 +40,7 @@ from random import randint
 import matplotlib.pyplot as plt
 from utils.tools import save_metrics, computeTestLossAE
 from utils.plot_metrics_AE import plotMetrics
+from src.medMNIST import loadFromHDF5, mix_data_splits, MedMNIST
 
 torch.multiprocessing.set_sharing_strategy('file_system') # To allow many files to open
 
@@ -70,11 +71,15 @@ class my_expe_class(object):
         nbSamplesUseMNIST: int
             Number of training samples of the MNIST dataset to use in order
             to train the Convolutional Autoencoder
+        dataset_name: str
+            Name of the dataset to use for feature extraction. Two options
+            are possible: MNIST and OrganCMNIST.
     """
     def __init__(
                     self, exp_id, epochs, batch_size, lr, weight_decay, loss_function,\
                     device='cpu', model_type="MnistConvolutionalAE",\
-                    latent_space_size=32, nbSamplesUseMNIST=15000
+                    latent_space_size=32, nbSamplesUseMNIST=15000,\
+                    dataset_name='MNIST'
                 ):
 
         print("\nInitializing experiment")
@@ -110,18 +115,27 @@ class my_expe_class(object):
             raise NotImplementedError("Loss function {} not yet supported".format(loss_function))
 
         # Loading the data
-        transform = torchvision.transforms.Compose([torchvision.transforms.CenterCrop(20), torchvision.transforms.ToTensor()])
-        # Training data
-        train_dataset = torchvision.datasets.MNIST(
-            root="../datasets/", train=True, transform=transform, download=True
-        )
-        # Testing data
-        self.train_dataset = [train_dataset[i] for i in range(len(train_dataset)) if i < self.nbSamplesUseMNIST ]
-        print('Number of total samples for training: {}'.format(len(self.train_dataset)))
-        #print("Size of one image: ", (self.train_dataset[0][0]).shape)
-        self.test_dataset = torchvision.datasets.MNIST(
-            root="../datasets/", train=False, transform=transform, download=True
-        )
+        self.dataset_name = dataset_name
+        if (self.dataset_name.lower() == 'mnist'):
+            transform = torchvision.transforms.Compose([torchvision.transforms.CenterCrop(20), torchvision.transforms.ToTensor()])
+            # Training data
+            train_dataset = torchvision.datasets.MNIST(
+                root="../datasets/", train=True, transform=transform, download=True
+            )
+            # Testing data
+            self.train_dataset = [train_dataset[i] for i in range(len(train_dataset)) if i < self.nbSamplesUseMNIST ]
+            print('Number of total samples for training: {}'.format(len(self.train_dataset)))
+            #print("Size of one image: ", (self.train_dataset[0][0]).shape)
+            self.test_dataset = torchvision.datasets.MNIST(
+                root="../datasets/", train=False, transform=transform, download=True
+            )
+        elif (self.dataset_name.lower() == 'organcmnist'):
+            self.train_data, self.val_data, self.test_data = loadFromHDF5('../datasets/organcmnist_0/data.hdf5') # HITS Dataset
+            self.train_data = mix_data_splits(self.train_data, self.val_data)
+            self.train_dataset = MedMNIST(self.train_data)
+            self.test_dataset = MedMNIST(self.test_data)
+        else:
+            raise NotImplementedError('Dataset {} is not implemented'.format(self.dataset_name))
 
         # Data loaders
         self.train_loader = None
@@ -141,9 +155,13 @@ class my_expe_class(object):
             self.device = torch.device('cpu')
 
         # Model
-        self.model = MnistConvolutionalAE(input_shape=(20,20), latent_space_size=self.latent_space_size)
+        if (self.dataset_name.lower() == 'mnist'):
+            self.model = MnistConvolutionalAE(input_shape=(20,20), latent_space_size=self.latent_space_size)
+            nb_channels, h_in, w_in = 1, 20, 20
+        elif (self.dataset_name.lower() == 'organcmnist'):
+            nb_channels, h_in, w_in = 1, 28, 28
+            self.model = MnistConvolutionalAE(input_shape=(28,28), latent_space_size=self.latent_space_size)
         self.model.apply(weights_init)
-        nb_channels, h_in, w_in = 1, 20, 20
         summary(self.model.to(self.device), (nb_channels, w_in, h_in))
         self.model.double()
         self.model.to(self.device)
@@ -241,25 +259,25 @@ class my_expe_class(object):
         # Saving the model
         # Creating the folder that will contain the model results
         inc = 0
-        while os.path.isdir('../models/MNIST_{}_{}'.format(self.exp_id, inc)):
+        while os.path.isdir('../models/{}_{}_{}'.format(self.dataset_name, self.exp_id, inc)):
             inc +=1
-        os.mkdir('../models/MNIST_{}_{}'.format(self.exp_id, inc))
-        os.mkdir('../models/MNIST_{}_{}/Model'.format(self.exp_id, inc))
-        os.mkdir('../models/MNIST_{}_{}/CompressedRepresentations'.format(self.exp_id, inc))
+        os.mkdir('../models/{}_{}_{}'.format(self.dataset_name, self.exp_id, inc))
+        os.mkdir('../models/{}_{}_{}/Model'.format(self.dataset_name, self.exp_id, inc))
+        os.mkdir('../models/{}_{}_{}/CompressedRepresentations'.format(self.dataset_name, self.exp_id, inc))
 
         # Saving the trained model
-        modelPath = '../models/MNIST_{}_{}/Model/model.pth'.format(self.exp_id, inc)
+        modelPath = '../models/{}_{}_{}/Model/model.pth'.format(self.dataset_name, self.exp_id, inc)
         torch.save(self.model, modelPath)
         print("Model saved at: ", modelPath)
 
         # Saving the compressed representation
         # Training points
-        trainPointsFileName = "../models/MNIST_{}_{}/CompressedRepresentations/training_representations.pth".format(self.exp_id, inc)
+        trainPointsFileName = "../models/{}_{}_{}/CompressedRepresentations/training_representations.pth".format(self.dataset_name, self.exp_id, inc)
         print('Train Compressed Representation Path: {}'.format(trainPointsFileName))
         with open(trainPointsFileName, "wb") as fp:   #Pickling
             pickle.dump(self.train_representations, fp)
         # Testing points
-        testPointsFileName = "../models/MNIST_{}_{}/CompressedRepresentations/testing_representations.pth".format(self.exp_id, inc)
+        testPointsFileName = "../models/{}_{}_{}/CompressedRepresentations/testing_representations.pth".format(self.dataset_name, self.exp_id, inc)
         print('Test Compressed Representation Path: {}'.format(testPointsFileName))
         with open(testPointsFileName, "wb") as fp:   #Pickling
             pickle.dump(self.test_representations, fp)
@@ -271,7 +289,7 @@ class my_expe_class(object):
         test_dict = {
                         'loss': self.test_loss_vals
                     }
-        metricsPath = '../models/MNIST_{}_{}/Model/metrics.hdf5'.format(self.exp_id, inc)
+        metricsPath = '../models/{}_{}_{}/Model/metrics.hdf5'.format(self.dataset_name, self.exp_id, inc)
         metricsPath = save_metrics(train_dict, test_dict, nameFile=metricsPath)
         print("Metrics saved at: ", metricsPath)
 
@@ -313,7 +331,10 @@ class my_expe_class(object):
         axs[0].axis("off")
 
         # Getting the reconstruction
-        reconstruction_sample = self.model(input_data.view(1, 1, 20, 20).type(torch.DoubleTensor).to(self.device)).cpu().detach().numpy()
+        if (self.dataset_name.lower() == 'mnist'):
+            reconstruction_sample = self.model(input_data.view(1, 1, 20, 20).type(torch.DoubleTensor).to(self.device)).cpu().detach().numpy()
+        if (self.dataset_name.lower() == 'organcmnist'):
+            reconstruction_sample = self.model(input_data.view(1, 1, 28, 28).type(torch.DoubleTensor).to(self.device)).cpu().detach().numpy()
         reconstruction_sample = reconstruction_sample.reshape(input_data.shape[1], input_data.shape[2])
         axs[1].imshow(reconstruction_sample)
         axs[1].set_title("Reconstructed input")
@@ -369,6 +390,9 @@ def main():
     if ('nbSamplesUseMNIST' not in parameters_dict):
         parameters_dict['nbSamplesUseMNIST'] = 15000
 
+    if ('dataset_name' not in parameters_dict):
+        parameters_dict['dataset_name'] = 'MNIST'
+
     # =========================================================================#
     # Running the experiment
     # Creating instance of the experiment
@@ -381,7 +405,8 @@ def main():
                             loss_function=parameters_dict['loss_function'],\
                             device='gpu',\
                             latent_space_size=parameters_dict['latent_space_size'],\
-                            nbSamplesUseMNIST=parameters_dict['nbSamplesUseMNIST']
+                            nbSamplesUseMNIST=parameters_dict['nbSamplesUseMNIST'],\
+                            dataset_name=parameters_dict['dataset_name']
                            )
 
     # Initializing the data loaders and optimizer

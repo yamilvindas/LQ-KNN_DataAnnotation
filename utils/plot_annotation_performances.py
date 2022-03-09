@@ -90,21 +90,27 @@ def main():
     # Construct the argument parser
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
-    default_label_prop_results_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/LabelPropResults/'
     default_var_to_study = 'K'
-    ap.add_argument('--label_prop_results_folder', default=default_label_prop_results_folder, help="Path to a label propagation results folder (obtained using the code examples/evaluation_label_propagation.py)", type=str)
+    ap.add_argument('--label_prop_results_folder', default=None, help="Path to a label propagation results folder (obtained using the code examples/evaluation_label_propagation.py)", type=str)
     ap.add_argument('--var_to_study', default=default_var_to_study, help="Studied variable which indicates which results have to be plotted. Four choices: K, percentageLabelsKeep, localQualThresh and None", type=str)
+    ap.add_argument('--default_dataset', default='MNIST', help="Default dataset to plot the results (it uses precomputed metics). Two options: MNIST and OrganCMNIST. Only used if --label_prop_results_folder is None", type=str)
     args = vars(ap.parse_args())
 
     # Getting the value of the arguments
     label_prop_results_folder = args['label_prop_results_folder']
     var_to_study = args['var_to_study']
+    default_dataset = args['default_dataset']
 
     #==========================================================================#
     # If the default parameters are used, we area going to download the
     # useful data if it has not been done already
-    if (label_prop_results_folder == default_label_prop_results_folder):
-        download_label_propagation_results_data()
+    if (label_prop_results_folder is None):
+        if (default_dataset.lower() == 'mnist'):
+            download_label_propagation_results_data('MNIST')
+            label_prop_results_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/LabelPropResults/'
+        elif (default_dataset.lower() == 'organcmnist'):
+            download_label_propagation_results_data('OrganCMNIST')
+            label_prop_results_folder = '../models/OrganCMNIST_Example_0/Projections_Example-Dim-Reduction_0/LabelPropResults/'
 
     #==========================================================================#
     # Matplotlib fontsize parameter

@@ -8,6 +8,11 @@
     --classif_res_folder: str
         Path to the folder containing the classfication results. This folder
         is usually obtained using the code example/label_propagation_with_classification.py
+    '--default_dataset: str
+        Default dataset to plot the results (it uses precomputed metics).
+        Two options: MNIST and OrganCMNIST. Only used if --classif_res_folder
+        is None
+
 """
 import os
 import pickle
@@ -118,18 +123,24 @@ def main():
     # Construct the argument parser
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
-    default_classif_res_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/ClassificationResults/'
-    ap.add_argument('--classif_res_folder', default=default_classif_res_folder, help="Path to the folder containing the classfication results (obtained using the code example/label_propagation_with_classification.py)", type=str)
+    ap.add_argument('--classif_res_folder', default=None, help="Path to the folder containing the classfication results (obtained using the code example/label_propagation_with_classification.py)", type=str)
+    ap.add_argument('--default_dataset', default='MNIST', help="Default dataset to plot the results (it uses precomputed metics). Two options: MNIST and OrganCMNIST. Only used if --classif_res_folder is None", type=str)
     args = vars(ap.parse_args())
 
     # Getting the value of the arguments
     classif_res_folder = args['classif_res_folder']
+    default_dataset = args['default_dataset']
 
     #==========================================================================#
     # If the default parameters are used, we area going to download the
     # useful data if it has not been done already
-    if (classif_res_folder == default_classif_res_folder):
-        download_label_propagation_results_classification_data()
+    if (classif_res_folder is None):
+        if (default_dataset.lower() == 'mnist'):
+            download_label_propagation_results_classification_data('MNIST')
+            classif_res_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/ClassificationResults/'
+        elif (default_dataset.lower() == 'organcmnist'):
+            download_label_propagation_results_classification_data('OrganCMNIST')
+            classif_res_folder = '../models/OrganCMNIST_Example_0/Projections_Example-Dim-Reduction_0/ClassificationResults/'
 
     #==========================================================================#
     # Matplib fontsize parameter

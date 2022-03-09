@@ -72,6 +72,14 @@ def rearangeData(data):
         # Original images
         for original_image_list in epochData['original_image']:
             for originalImage in original_image_list:
+                if (type(originalImage) == str):
+                    sample_data = np.asarray(Image.open(originalImage))/255.
+                    if (len(sample_data.shape) == 3):
+                        sample_data = np.moveaxis(sample_data, 2, 0) # Because in pytorch the channel has to be in the first position
+                    else:
+                        sample_data = sample_data.reshape((1, sample_data.shape[0], sample_data.shape[1]))
+                    image = torch.tensor(sample_data)
+                    originalImage = image.type("torch.FloatTensor") # To avoid problems with types
                 newOriginalImage.append(originalImage.cpu().detach().numpy())
         # Split type of the sample (train or test splits)
         if ('data_split' in epochData):
@@ -80,6 +88,7 @@ def rearangeData(data):
                     newDataSplits.append(dataSplit)
         newData.append({'compressed_representation': newOutput, 'original_image': newOriginalImage, 'label': newLabel, 'data_split':newDataSplits})
     return newData
+
 
 
 def main():

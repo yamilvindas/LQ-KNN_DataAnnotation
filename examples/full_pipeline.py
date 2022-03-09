@@ -116,10 +116,6 @@ def main():
     # Computing some projection metrics for the optimal selected projection
     print("\n\n==================================================================")
     print("===Computing projection metrics for the optimal selected projection===")
-    # Getting the optimal selected projection
-    with open(projections_folder + 'resultsProjectionSelection.json') as json_file:
-        results_projection_selection = json.load(json_file)
-    best_projection_folder = results_projection_selection['BestProjection']
     # Computing the metrics
     ks, kt = '10', '10'
     quality_lueks = 'True'
@@ -128,8 +124,6 @@ def main():
                             [
                                 'python',\
                                 '../src/projection_metrics.py',\
-                                '--projections_folder',\
-                                best_projection_folder,\
                                 '--latent_space_repr',\
                                 representations_file,\
                                 '--ks',\
@@ -152,33 +146,34 @@ def main():
     print("\n\n==================================================================")
     print("====================Doing Label propagation with {}====================".format(propagation_mode))
     exp_ID = 'LabelPropEvaluation'
-    folder_embRepr = best_projection_folder
     with subprocess.Popen(\
                             [
                                 'python',\
-                                '../src/label_propagation.py',\
+                                '../examples/label_propagation.py',\
                                 '--exp_ID',\
                                 exp_ID,\
-                                '--folder_embRepr',\
-                                folder_embRepr,\
+                                '--projections_folder',\
+                                projections_folder,\
                                 '--propagation_mode',\
                                 propagation_mode,\
                                 '--var_to_study',\
                                 var_to_study,\
                                 '--sorted_qualities',\
-                                sorted_qualities,\
+                                str(sorted_qualities),\
                                 '--local_quality_threshold',\
-                                local_quality_threshold,\
+                                str(local_quality_threshold),\
                                 '--ks',\
                                 ks,\
                                 '--kt',\
-                                kt
+                                kt,\
+                                '--projection_type_to_use',\
+                                'Best'
                             ], stdout=subprocess.PIPE
                          ) as proc:
         for line in proc.stdout:
             line = line.decode("utf-8")
             print(line)
-        
+
 
 
 

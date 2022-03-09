@@ -6,5 +6,6 @@
   "weight_decay": 1e-5,
   "loss_function": "MSE_loss",
   "latent_space_size": 32,
-  "nbSamplesUseMNIST": 15000
+  "nbSamplesUseMNIST": 15000,
+  "dataset_name": "MNIST"
 }
