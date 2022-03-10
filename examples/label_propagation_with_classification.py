@@ -37,6 +37,8 @@
             -device: 'CPU' or 'GPU'.
             -nbRepetitions: Number of times to repeat the experiment for
             statistical purposes.
+            -dataset_name: Name of the dataset to use for feature extraction. Two options
+            are possible: MNIST and OrganCMNIST.
 
         *--projections_folder: Folder containing different sub-folders
         corresponding to the projections that we want to study. It is used to
@@ -581,10 +583,8 @@ def main():
     # Construct the argument parser
     ap = argparse.ArgumentParser()
     # Add the arguments to the parser
-    default_projections_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/'
-    # default_projections_folder = '../models/OrganCMNIST_Example_0/Projections_Example-Dim-Reduction_0/'
     ap.add_argument("--parameters_file", required=False, default="../parameters_files/default_parameters_classification.json", help="File containing the parameters of the experiment", type=str)
-    ap.add_argument("--projections_folder", default=default_projections_folder, help="Folder to the files describing the embedded data", type=str)
+    ap.add_argument("--projections_folder", default=None, help="Folder to the files describing the embedded data", type=str)
     args = vars(ap.parse_args())
 
     # Parameter file
@@ -661,6 +661,10 @@ def main():
 
     if ('dataset_name' not in parameters_dict):
         parameters_dict['dataset_name'] = 'MNIST'
+    if (parameters_dict['dataset_name'].lower() == 'mnist') and (projections_folder is None):
+        projections_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/'
+    elif (parameters_dict['dataset_name'].lower() == 'organcmnist') and (projections_folder is None):
+        projections_folder = '../models/OrganCMNIST_Example_0/Projections_Example-Dim-Reduction_0/'
 
     print("\n\n=======>Using {} projectio for label propagation\n\n".format(parameters_dict['projection_type_to_use']))
 
