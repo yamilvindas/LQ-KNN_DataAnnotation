@@ -41,6 +41,7 @@ import matplotlib.pyplot as plt
 from utils.tools import save_metrics, computeTestLossAE
 from utils.plot_metrics_AE import plotMetrics
 from src.medMNIST import loadFromHDF5, mix_data_splits, MedMNIST
+from utils.download_exps_data import download_organc_mnist
 
 torch.multiprocessing.set_sharing_strategy('file_system') # To allow many files to open
 
@@ -130,6 +131,10 @@ class my_expe_class(object):
                 root="../datasets/", train=False, transform=transform, download=True
             )
         elif (self.dataset_name.lower() == 'organcmnist'):
+            # Downloading the datasets (if not already done)
+            download_organc_mnist()
+
+            # Creating the dataset
             self.train_data, self.val_data, self.test_data = loadFromHDF5('../datasets/organcmnist_0/data.hdf5') # HITS Dataset
             self.train_data = mix_data_splits(self.train_data, self.val_data)
             self.train_dataset = MedMNIST(self.train_data)

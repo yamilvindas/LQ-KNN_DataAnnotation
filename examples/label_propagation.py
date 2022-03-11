@@ -42,7 +42,7 @@ import copy
 from src.label_propagation import propagateLabels_LQKNN, propagateLabelsLocalQuality_LQKNN_withoutSort
 from src.label_propagation import propagateLabels_StdKNN, propagateLabels_OPF
 from src.optimal_projection_selection import select_optimal_projection
-from utils.download_exps_data import download_label_propagation_data
+from utils.download_exps_data import download_label_propagation_data, download_organc_mnist
 
 class Experiment(object):
     def __init__(self,\
@@ -352,6 +352,9 @@ def main():
     if ('/MNIST_Example_0/' in projections_folder):
         download_label_propagation_data('MNIST')
     elif ('/OrganCMNIST_Example_0/' in projections_folder):
+        # Downloading the OrganCMNIST dataset
+        download_organc_mnist()
+        # Downloading the experiment data
         download_label_propagation_data('OrganCMNIST')
 
 

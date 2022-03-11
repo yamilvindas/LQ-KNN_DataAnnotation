@@ -67,7 +67,7 @@ from src.label_propagation import propagateLabels_LQKNN, propagateLabelsLocalQua
 from src.label_propagation import propagateLabels_StdKNN, propagateLabels_OPF
 from src.optimal_projection_selection import select_optimal_projection
 from src.medMNIST import loadFromHDF5, mix_data_splits, MedMNIST
-from utils.download_exps_data import download_label_propagation_with_classification_data
+from utils.download_exps_data import download_label_propagation_with_classification_data, download_organc_mnist
 
 #==============================================================================#
 #==============================================================================#
@@ -664,6 +664,7 @@ def main():
     if (parameters_dict['dataset_name'].lower() == 'mnist') and (projections_folder is None):
         projections_folder = '../models/MNIST_Example_0/Projections_Example-Dim-Reduction_0/'
     elif (parameters_dict['dataset_name'].lower() == 'organcmnist') and (projections_folder is None):
+        # Defining the default projection folder for OrganCMNIST
         projections_folder = '../models/OrganCMNIST_Example_0/Projections_Example-Dim-Reduction_0/'
 
     print("\n\n=======>Using {} projectio for label propagation\n\n".format(parameters_dict['projection_type_to_use']))
@@ -673,7 +674,11 @@ def main():
     # If the default parameters are used, we area going to download the
     # useful data if it has not been done already
     if (parameters_dict['dataset_name'].lower() in ['mnist', 'organcmnist']):
+        # Download useful data for the experiment
         download_label_propagation_with_classification_data(parameters_dict['dataset_name'])
+        # Downloading the experiment data
+        if (parameters_dict['dataset_name'].lower() == 'organcmnist'):
+            download_organc_mnist()
 
     #==========================================================================#
     #==========================================================================#

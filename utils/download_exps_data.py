@@ -6,9 +6,9 @@
 """
 import os
 import requests
+from tqdm import tqdm
 
-
-def download_file(file_url, dir_store, file_name):
+def download_file(file_url, dir_store, file_name, verbose=True):
     """
         Download a file from the given url and stores it in the given directory
         with the given name
@@ -21,15 +21,64 @@ def download_file(file_url, dir_store, file_name):
             Path of the directory where the downloaded file should be stored.
         file_name: str
             Name of the file when download it
+        verbose: bool
+            True if you want to print some information about the requested file
     """
     # Searching if the directory name exists
-    if os.path.exists(dir_store+'/'+file_name):
+    if os.path.exists(dir_store+'/'+file_name) and verbose:
         print("The file {} already exists".format(dir_store+'/'+file_name))
     else:
         # Downloading the file
         file = requests.get(file_url)
         open(dir_store+'/'+file_name, 'wb').write(file.content)
-        print("File downloaded successfully and stored in {}".format(dir_store+'/'+file_name))
+        if (verbose):
+            print("File downloaded successfully and stored in {}".format(dir_store+'/'+file_name))
+
+def download_organc_mnist():
+    """
+        Downloads the OrganCMNIST dataset necessary to run the different
+        experiments.
+    """
+    if (not os.path.exists('../datasets/organcmnist_0/')):
+        print("\n=======> Starting download of theOrganCMNIST dataset")
+        # Creating the directories
+        os.mkdir('../datasets/organcmnist_0/')
+        os.mkdir('../datasets/organcmnist_0/train/')
+        os.mkdir('../datasets/organcmnist_0/val/')
+        os.mkdir('../datasets/organcmnist_0/test/')
+
+        # Files to download
+        train_files = ['train_labels.csv'] + ['train_image_{}.png'.format(i) for i in range(13000)]
+        val_files = ['val_labels.csv'] + ['val_image_{}.png'.format(i) for i in range(2392)]
+        test_files = ['test_labels.csv'] + ['test_image_{}.png'.format(i) for i in range(8268)]
+        files_to_download = {
+                                'train': train_files,
+                                'val': val_files,
+                                'test': test_files
+                            }
+
+        # Downloading the different files
+        # Data description file
+        download_file(
+                        file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/datasets/organcmnist_0/data.hdf5',\
+                        dir_store='../datasets/organcmnist_0/',\
+                        file_name='data.hdf5',\
+                        verbose=False
+                    )
+        # Training, validation and testing files
+        splits = ['train', 'val', 'test']
+        for split in tqdm(splits):
+            for file_to_download in files_to_download[split]:
+                download_file(
+                                file_url='https://www.creatis.insa-lyon.fr/~vindas/LQ-KNN_DataAnnotation/datasets/organcmnist_0/{}/{}'.format(split, file_to_download),\
+                                dir_store='../datasets/organcmnist_0/{}/'.format(split),\
+                                file_name=file_to_download,\
+                                verbose=False
+                            )
+        print("=======> OrganCMNIST dataset downloaded successfully!\n")
+    else:
+        print("=======> OrganCMNIST dataset has alredy been downloaded!\n")
+
 
 
 def download_dim_red_data(dataset='MNIST'):
@@ -77,6 +126,7 @@ def download_dim_red_data(dataset='MNIST'):
                     dir_store='../models/{}_Example_0/CompressedRepresentations/'.format(dataset_name),\
                     file_name='training_representations.pth'
                 )
+
 
 def download_label_propagation_data(dataset='MNIST'):
     """

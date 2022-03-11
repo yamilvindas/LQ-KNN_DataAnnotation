@@ -7,7 +7,7 @@ import json
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
-from utils.download_exps_data import download_dim_red_data
+from utils.download_exps_data import download_dim_red_data, download_organc_mnist
 import argparse
 
 def main():
@@ -26,6 +26,10 @@ def main():
     #=========================================================================#
     # Downloading the useful data for the experiment
     download_dim_red_data(dataset)
+
+    # Downloading the OrganCMNIST dataset if used
+    if (dataset.lower() == 'organcmnist'):
+        download_organc_mnist()
 
     #=========================================================================#
     #=========================================================================#
