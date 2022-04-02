@@ -79,3 +79,7 @@ To understand the behavior of our method on your dataset we recommend that you t
 * Then, using the hyper-parameters chosen in the previous step, you can propagate the labels from the samples of *L* to the samples of *U*.
 
 It is also possible to directly propagate the labels from *L* to *U* for different value sof the hyper-parameters and train your supervised models using a robust loss function as shown in the submitted paper (however, in this case you do not have an estimation of the annotation error).
+
+## VI) Contact
+
+If you need help to use our repository or if you find any bugs, do not hesitate to contact us: <yamil.vindas@creatis.insa-lyon.fr>
