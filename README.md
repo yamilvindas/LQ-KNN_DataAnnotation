@@ -82,4 +82,4 @@ It is also possible to directly propagate the labels from *L* to *U* for differe
 
 ## VI) Contact
 
-If you need help to use our repository or if you find any bugs, do not hesitate to contact us (<yamil.vindas@creatis.insa-lyon.fr>).
+If you need help to use our repository or if you find any bugs, do not hesitate to contact us (yamil(dot)vindas-yassine(at)inria.fr).
